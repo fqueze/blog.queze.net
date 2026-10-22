@@ -1,0 +1,41 @@
+---
+title: "TGV - Prenez le temps d'aller vite"
+date: 2006-07-22T14:12:10
+updated: 2014-01-20T23:44:05Z
+url: "2006/07/22/TGV-Prenez-le-temps-d-aller-vite"
+id: 100
+guid: urn:md5:b124ea52186768695462c9b322b08ad6
+tags: ["Transport"]
+http: true
+templateEngineOverride: html
+---
+
+   <p>Deux fois déjà, Omar m'a demandé s'il était possible en France de prendre un train, mais PAS un TGV ; car le TGV c'est cher, et que bien souvent, on s'en fiche d'arriver vite ou pas. Il aurait souhaité un train plus lent et nettement moins cher. Je ne sais toujours pas s'il est possible d'avoir des trains moins chers que les TGV, par contre des trains lents, c'est tout à fait possible, j'en ai fait la regrettable expérience hier soir en prenant <em>le temps d'aller vite</em>.</p>
+
+<p>Hier soir, début des vacances (youpitralala&nbsp;!). Pour arriver à une heure raisonnable à Serques, j'avais décidé de prendre un TGV pas trop tard (il partait de la Gare du Nord à 18h52, ce qui devait me faire arriver à Saint-Omer vers 21h, après un changement à Hazebrouck).</p>
+
+<p>Arriver vers 21h, c'était sans compter sur la vitesse exceptionnelle des trains ce soir là&nbsp;!! Le train, parti à l'heure, a beaucoup ralenti quelques dizaines de minutes plus tard, pour finalement s'arrêter en pleine voie. Toutes les quelques minutes, le train repartait, roulait à une vitesse inférieure à celle d'un vélo pendant quelques minutes, puis s'arrêtait de nouveau.</p>
+
+<p>Les explications de la sncf dans les haut parleurs du train n'ont pas été très détaillées (c'est le moins qu'on puisse dire&nbsp;!). Juste après le premier arrêt, on nous a annoncé que le train était arrêté en pleine voie, et il nous a été demandé de ne pas tenter d'ouvrir les portes. Longtemps après, une seconde annonce nous a indiqué que nous étions arrêtés en raison d'un train Thallis en panne sur la voie, et que notre retard était estimé à 10 à 15 minutes.</p>
+<p>Au bout de plusieurs 10aines de minutes, beaucoup de voyageurs commençaient à s'énerver... Certains ont réclamé de l'eau, mais il n'y en avait pas dans le train... Il n'y a pas eu d'autre informations claires.</p>
+<p>Après plus d'une heure d'arrêt, une annonce plus longue nous a expliqué un peu mieux la situation&nbsp;: un train thallis était en panne sur la voie au niveau de la gare de TGV Haute-Picardie, il venait d'être déplacé, mais il y avait encore 5 trains arrêtés devant le nôtre. Le retard total a été à ce moment estimé à 2 heures. Les voyageurs devant prendre une correspondance à Hazebrouck en direction de Calais ou Saint-Omer n'auront pas de train et des taxis seront appelés par la gare.</p>
+
+<p>J'ai eu plusieurs fois mes parents au téléphone et leur ai indiqué de ne pas se rendre à la gare de St Omer à l'heure que j'avais indiqué la veille...</p>
+
+<p>A côté de moi dans le train se trouvait une jeune fille (plutôt jolie). Quand elle était arrivée et s'était installée, elle m'a fait un sourire mais n'a rien dit. Nettement plus tard, elle m'a demandé l'heure en français sans aucun accent, mais quand je lui ai répondu qu'il était 21 heure, elle n'a pas compris et m'a demandé si c'était 9 neures, je me doutais donc qu'elle n'était pas française. Je n'ai eu la certitude qu'elle était anglaise que quand après la longue annonce de la sncf indiquant que nous avions 2 heures de retard, elle a murmuré « Fuck&nbsp;! ».</p>
+
+<p>Je lui ai demandé si elle avait compris ce qu'ils venaient d'annoncer, elle m'a répondu « a bit » avec un air qui voulait dire « non ». J'ai donc tenté de traduire plus ou moins... A partir de ce moment, nous avons discuté un peu. Elle m'a expliqué qu'elle devait changer de train à Hazebrouck pour ensuite aller à Calais et prendre le ferry. Le dernier ferry était à 23h45.</p>
+
+<p>Elle m'a demandé de lui traduire les annonces suivantes (à chaque fois que le train ralentissait et qu'on approchait d'une gare).</p>
+
+<p>Quand nous sommes descendus à Hazebrouck, j'ai vu qu'elle a vérifié 2 fois avec un air un peu angoissé si j'étais encore derrière elle, elle s'inquiêtait probablement de savoir si elle trouverait dans la gare quelqu'un pour l'aider à communiquer. Elle est allé voir le panneau d'affichage de la gare, et a constaté avec une déception non masquée que le prochain train pour Calais était à 6 heures du matin. Je lui ai indiqué de suivre la foule qui allait vers le chef de gare, chargé d'arranger la situation pour les voyageurs ne pouvant avoir leur correspondance.</p>
+
+<p>Le chef de gare était très occupé, après avoir distribué à tous les passagers descendus du TGV des enveloppes pour obtenir une compensation pour le retard, à savoir combien de taxi il lui faudrait appeler pour Calais et Saint-Omer. J'ai vu que la jeune anglaise parlait à 2 ou 3 personnes qui l'entouraient, donc elle avait du trouver parmi les passagers quelqu'un capable de communiquer avec elle en anglais <img src="/smileys/sourire.png" alt=":-)" />.</p>
+
+<p>Mon père, qui venait d'arriver (j'avais téléphoné pour qu'on vienne me chercher à Hazebrouck), pouvait prendre 2 personnes en plus pour Saint-Omer. Je suis donc allé voir le chef de gare et le lui ai indiqué. Quand j'ai eu fini de parler, il s'est illuminé et s'est exclamé « Ah&nbsp;! vous me sauvez&nbsp;! ». En effet, il lui manquait un taxi pour Saint-Omer <img src="/smileys/sourire2.png" alt="^^" />. Il a proposé d'indiquer sur mon billet que n'avait pas utilisé la partie entre Hazebrouck et Saint-Omer en raison du retard du TGV, afin que je puisse avoir un autre billet gratuitement pour cette partie. J'ai évidemment accepté. J'ai profité de parler au chef de gare pour lui demander si quelqu'un parlait anglais ici, et rappeler la situation de la jeune anglaise qui avait voyagé avec moi. (Rappeler car quelqu'un en avait parlé juste avant moi pour demander si elle avait encore des chances, avec le taxi, de réussir à avoir le dernier ferry de 23h45). Le chef de gare ne parlait pas anglais, son adjoint non plus&nbsp;!!!</p>
+
+<p>Quand j'ai dit « Bye » à l'anglaise, elle m'a répondu avec un sourire donc je pense que quelqu'un s'occupait d'elle.</p>
+
+<p>Nous sommes partis mon père et moi en emmenant deux personnes (qui nous ont bien remerciés) jusqu'à la gare de Saint-Omer.</p>
+
+<p>Je trouve que la gestion de la situation par la SNCF a été lamentable. Ce que je trouve le pire n'est pas que le train ait eu 2 heures de retard (un incident imprévu peut toujours survenir...), mais que dans le train il n'y ait eu aucune annonce en anglais, et qu'à la gare personne parmi le personnel de la SNCF ne soit capable de communiquer dans cette langue. Pour une gare et un train permettant de se diriger vers Calais, je trouve cela totalement inadmissible&nbsp;!! Je trouve aussi anormal que dans le train nous ayons été si peu renseignés sur la situation, et qu'à la gare, il fallait attendre les taxis, alors que plus d'une heure avant, on nous avait annoncé dans le train que des taxis seraient mis à notre disposition. Pourquoi les taxis n'ont-ils pas été appelés de façon à être déjà là à l'arrivée du train&nbsp;? Certes, ce n'est pas aussi facile de trouver un taxi à Hazebrouck ou Saint-Omer qu'à Paris ou Lille (comme l'a d'ailleurs fait remarquer le chef de gare), mais je ne considère pas ça comme une excuse valable&nbsp;!</p>
