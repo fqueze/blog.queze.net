@@ -1,0 +1,560 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="NOINDEX, FOLLOW" />
+
+  <title>Mozilla - Florian Quèze</title>
+  <meta name="description" lang="en" content="Posts related to Mozilla activities" />
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="prev" title="previous entries" href="/category/Mozilla/page/2" />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/category/Mozilla/atom" />
+
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="dc-category">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">Florian Quèze</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+
+  <div id="content-info">
+    <h2>
+    Mozilla</h2>
+    <p>Posts related to Mozilla activities</p>
+
+    <p><a type="application/atom+xml" href="/feed/category/Mozilla/atom"
+    title="This category's entries Atom feed" class="feed">Entries feed</a></p>
+  </div>
+  
+
+    <div id="p140" class="post odd first" lang="en" xml:lang="en">
+    <p class="day-date">Tuesday, December  5 2017</p>
+
+    <h2 class="post-title"><a
+    href="/post/2017/12/05/Catching-flickering-regressions">Catching flickering regressions</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, December  5 2017, 20:47
+    
+    </p>
+
+    <ul class="post-tags">
+    <li><a href="/tag/performance">performance</a></li>
+    </ul>
+
+    <div class="post-content"><p>For Firefox 57, as part of the Photon Performance project, one of the
+things we worked on was dramatically reducing flickering in the main
+browser window. We focused especially on what happens when opening the
+first browser window during startup, and when opening new browser
+windows.<br /><br />To identify bugs, we <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1372518#c0" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1372518%23c0&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNGmtWyKTq358nomUf_azbiQZPlKng">looked frame by frame at video recordings</a>.
+This was good enough to file bugs for an initial exploration, but was
+time consuming, and won't help us to keep these interactions flicker
+free going forward.<br /><br />I'm happy to announce that these two
+interactions are now covered by automated flickering tests that will
+catch any regression there:<br /><a href="https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNEVtLKbH5HRh1TQq3LB7ev-6Vcx8Q">https://searchfox.org/mozilla-<wbr>central/source/browser/base/co<wbr>ntent/test/performance/browser<wbr>_startup_flicker.js</a><br /><a href="https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNGqEpUmnoTJ-gr-8V1DbkCqhwIqzQ">https://searchfox.org/mozilla-<wbr>central/source/browser/base/co<wbr>ntent/test/performance/browser<wbr>_windowopen_flicker.js</a><br /><br />These tests currently contain whitelists of known bugs (blocking <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1421456" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1421456&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNEogQEuEbaHV7CgJU5AiOeB2146zw">bug 1421456</a>).</p>
+Here is how these tests work:<br /><ul><li>as soon as the window we care about is created, we add a MozAfterPaint event listener to it.</li>
+<li>for each received MozAfterPaint event, we capture a screenshot of the window using <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNF4_r45yxxCGeu1Bq4Cevns0REsGg">CanvasRenderingContext2D.drawW<wbr>indow()</a>.</li>
+<li>remove the event listener after the window is done loading and after several Services.tm.idleDispatchToMain<wbr>Thread callbacks to ensure that the window has settled.</li>
+<li>compare the pixel data of each of the captured frames to identify areas that have changed.</li>
+<li>for changed areas, see if they are whitelisted, if not make the test
+fail and dump base64 encoded data urls of the before/after screenshots,
+so that the test failure can be visually debugged.</li>
+</ul><div dir="ltr">We
+currently cover only the startup and window opening cases, but I expect
+us to add similar tests to more areas in the future. Each time we spend
+effort reducing flickering in some area of our UI, we should add tests
+for it to prevent regression.</div></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2017/12/05/Catching-flickering-regressions#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p139" class="post  " lang="en" xml:lang="en">
+    <p class="day-date">Wednesday, October 18 2017</p>
+
+    <h2 class="post-title"><a
+    href="/post/2017/10/18/Thunderbird-is-the-next-version-of-Instantbird">Thunderbird is the next version of Instantbird</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Wednesday, October 18 2017, 23:55
+    
+    </p>
+
+    
+
+    <div class="post-content"><div id="magicdomid1338" class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">Ten years ago, on October 18th 2007, I <a href="/post/2007/10/18/Instantbird-0.1">released Instantbird 0.1</a></span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">.</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"> I was soon joined by a team of enthusiastic hackers, and </span><span class="">I hoped we could make a better IM client that would replace the</span><span class=""> painfully broken ones that were dominant at the time.</span></div><div class="ace-line"><span class=""><br /></span></div><div id="magicdomid1367" class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">The Internet has changed a lot since then.</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"> Messaging has moved significantly toward mobile apps.&nbsp;</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">T</span><span class="">he clients we were </span><span class="">competing with mostly died themselves.</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"> Even the services we were connecting to are closing down (</span><a href="https://help.aol.com/articles/aim-discontinued" title="AIM will be discontinued on December 15, 2017"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">AOL</span></a><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">, <a href="http://ismsndeadyet.com/" title="Is MSN dead yet?">MSN</a>, ...)</span><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z">, or moved away from standard protocols (</span><a href="https://developers.facebook.com/docs/chat/"><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z">Facebook</span></a><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z url">)</span><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z">.</span></div><div class="ace-line"><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z"><br /></span></div><div id="magicdomid1362" class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">While we made a</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"> pretty good product, we never managed to attract a critical mass of</span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"> users, and we lost half of them when <a href="https://developers.facebook.com/docs/chat/" title="After April 30th, 2015 apps will no longer be able to access the service or API.">the Facebook XMPP gateway was closed</a>. Instantbird still has some uses (especially as an IRC client), but its user interface has aged significantly.</span></div><div class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"><br /></span></div><div id="magicdomid1485" class="ace-line"><span class="">I don't think maintaining our infrastructure to support only a few</span><span class=""> thousand users is a good use of my time, and I've lost motivation to</span><span class=""> do it. </span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">While Instantbird regularly received code contributions from several people and had a nice and friendly community, nobody stood up to replace me and take care of our build infrastructure. This means we haven't been able to produce nightly builds for the last couple months, and are extremely unlikely to be able to ship a new release any time soon. It's time to announce that we are stopping development of Instantbird as a standalone product.</span></div><div id="magicdomid1646" class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"><br /></span></div><div class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">The code base isn't dying though! A large part of it is shared with Thunderbird (since <a href="https://blog.mozilla.org/thunderbird/2012/08/new-thunderbird-chat-do-not-track-and-much-more/" title="The Mozilla Thunderbird Blog: New Thunderbird: Chat, Do Not Track and much more…">it received chat support in 2012</a>). Thunderbird is actively maintained, and has lots of users.</span></div><div class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i"><br /></span></div><div id="magicdomid1713" class="ace-line"><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">Instead of working on Instantbird, we'll refocus our energy on <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1409891" title="Bug 1409891 - [meta] Improve the experience for users coming from Instantbird">improving the chat features</a> in Thunderbird, so that it becomes friendly for users who loved Instantbird and will seek a replacement.</span><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z"> This should allow us to focus on features and not worry about infrastructure that was sapping our energy and time. Thunderbird </span><span class="author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i">is</span><span class="author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z"> the spiritual successor to Instantbird!</span></div></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2017/10/18/Thunderbird-is-the-next-version-of-Instantbird#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p138" class="post odd " lang="en" xml:lang="en">
+    <p class="day-date">Monday, February  8 2016</p>
+
+    <h2 class="post-title"><a
+    href="/post/2016/02/08/Project-ideas-wanted-for-Summer-of-Code-2016">Project ideas wanted for Summer of Code 2016</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Monday, February  8 2016, 20:04
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>Google is running <a href="https://developers.google.com/open-source/gsoc/"><span class="il">Summer</span> <span class="il">of</span> <span class="il">Code</span></a> again in 2016. Mozilla has had the pleasure <span class="il">of</span> participating many years so far, and even though we weren't selected last year, we are hoping to participate again this year. In the next few weeks, we need to prepare a list <span class="il">of</span> suitable projects to support our application.<br />
+<br />
+Can you think <span class="il">of</span> a 3-month coding project you would love to guide a student through? This is your chance to get a student focusing on it for 3 months! <span class="il">Summer</span> <span class="il">of</span> <span class="il">Code</span> is a great opportunity to introduce new people to your team and have them work on projects you care about but that aren't on the critical path to shipping your next release.<br />
+<br />
+Here are the conditions for the projects:</p>
+<ul><li>
+completing the project should take roughly 3 months <span class="il">of</span> effort for a student;</li>
+<li>any part <span class="il">of</span> the Mozilla project (Firefox, Firefox OS, Thunderbird, Instantbird, SeaMonkey, Bugzilla, L10n, NSS, IT, and many more) can submit ideas, as long as they require coding work;</li>
+<li>there is a clearly identified mentor who can guide the student through the project.</li>
+</ul>
+<p>
+If you have an idea, please put it on the <a href="https://wiki.mozilla.org/Community:SummerOfCode16:Brainstorming">Brainstorming page</a>, which is our idea development scratchpad. Please follow the instructions at the top.<br />
+<br />
+The deadline to submit project ideas and help us be selected by Google is February 19th.<br />
+<br />
+Note for students: the student application period starts on March 14th, but the sooner you start discussing project ideas with potential mentors, the better.</p></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2016/02/08/Project-ideas-wanted-for-Summer-of-Code-2016#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p137" class="post  " lang="en" xml:lang="en">
+    <p class="day-date">Tuesday, November  3 2015</p>
+
+    <h2 class="post-title"><a
+    href="/post/2015/11/02/What-about-search-hijacking">What about search hijacking?</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, November  3 2015, 12:00
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>Some people may have noticed that lately my work has been concentrated on bugs with 'hijacking' in the status whiteboard, but we never really took the time to explain what the goals of this work are, or aren't.</p>
+<p>What we call "search hijacking" is when a user's default search engine is changed without the user's intent, typically while the user is installing some other software on his system. Search hijacking is a very common phenomenon, and is causing a severely degraded user experience for the affected users; sometimes leading users to switch to another browser to stop searching with a search engine they never wanted and don't know how to change.</p>
+<p>When the search service (the back-end code handling search engines) was initially created <a title="Bug 317107 - New search service" href="https://bugzilla.mozilla.org/show_bug.cgi?id=317107">about a decade ago</a>, search hijacking wasn't a thing. Things were designed for maximum user customizability. Unfortunately, these days the ease of customization combined with the monetary incentives offered has made search a hijacking target.</p>
+<p>The current situation is untenable for Firefox users, so we had to do something. Deciding what to do wasn't obvious, because the difference between the user customizing something and unwanted software writing things to disk isn't always as clear as we would like it to be.</p>
+<p>Whatever we do, hijackers will be able to change their code to workaround our changes. In some way, this is an arms race. We can make changes every 6 weeks if needed. We have reasons to believe that it takes most hijackers several months to update their hacks and deploy them, as they need to be bundled with other software for downloads. Our first approach to the problem, especially while our resources to tackle this were very limited, was to do tiny changes every once in a while to breaks some hijacks and help our users for a few months. We didn't want to do pointless changes, but we could find a few things that didn't feel right in our code, and fixed them.</p>
+<p>For example, we had some evidence that a significant number of users had modified yahoo.xml files in their application folder. Being able to hijack the default engine by just changing an URL in a plain XML file on the disk was just ridiculous, especially when almost every other non-binary file used by the browser is packed inside the omni.ja file. We fixed this in <a title="Bug 1162569 - default engine files should be in the omni.ja file" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1162569">bug 1162569</a> for Firefox 40. Similarly, it was possible to change the default engine by dropping in the user's profile a file redefining the same engine. There is no way to end up in this situation 'naturally', because we refuse to install duplicate engines. The logical fix was to ensure that engines in the profile can't override built-in engines. We fixed this in <a title="Bug 1109354 - prefer Firefox default engines over profile-installed plugins with the same name" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1109354">bug 1109354</a>, also for Firefox 40. This was also a good opportunity to add lots of tests about how engines are loaded.</p>
+<p>Something seriously limiting our ability to correctly attack the problem was the lack of good data. We found the evidence of modified yahoo.xml files in the wild almost by accident, while looking at incoherent default engine data we received in FHR. In parallel to the fixes mentioned above, we also introduced a better data collection mechanism, with the <a title="Bug 1164159 - Send information about the default search engines through Telemetry" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1164159">addition of a telemetry probe</a> recording details about how the current default engine has been loaded.</p>
+<p>I haven't been able to look at release-user data collected through this new telemetry probe yet (I intend to do so soon!), but a quick analysis of the early data we got from nightly and aurora users revealed that a non-trivial amount of users had no engine at all, resulting in search features being completely broken for them. This situation can happen if the hijackers removed all the other 'competing' engines to ensure they are the only one, and then got removed themselves, eg. due to one of our previous fixes. We addressed this problem in <a title="Bug 438599 - the currentEngine attribute of nsIBrowserSearchService should never be null" href="https://bugzilla.mozilla.org/show_bug.cgi?id=438599">bug 438599</a> for Firefox 43, by unhiding automatically the original default engine when no visible engine is left.</p>
+<p>A major change that is coming soon to Firefox is required <a href="https://wiki.mozilla.org/Add-ons/Extension_Signing">add-on signing</a>. This is a game changer for hijacking, because now anything that lets malware with disk access insert unsigned-code that changes Firefox's behavior is explicitly a bug. This means we are now in a position to close lots of doors that were wide open, to ensure the control is in the hands of our users, not hijackers. There are 2 supported ways to install new engines: either the user does it through the Firefox UI (eg. using OpenSearch discovery on a website), or it's done by a signed add-on. Any other way left to install a search engine and set it as the default is something we need to look into.</p>
+<p>In order to better enforce this, we need to be reasonably confident that the data from the user's profile has actually been written due to intentional user actions. The next step of our hijacking remediation work is to cleanup the way search-related data is stored in user profiles. We used to store 2 JSON files (one cache file dismissed after each update, and one file with metadata), in addition to a plain xml file for each user-installed engine. This made it easy to mess either with the xml files (just dropping in the folder an xml file in the open search format was enough to install an engine) or with the metadata. In <a title="Bug 1203167 - Store user-installed search plugins in a JSON file and stop loading [profile]/searchplugins/*.xml" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1203167">bug 1203167</a> (just landed on nightly), I'm changing the profile storage so that everything is in a single file. The data is stored in a JSON format, but the file is written to disk using OS.File's compression feature, which in addition to reducing the file size on disk will also make the file resistant to dumb search &amp; replace attacks. The important data stored in the file (eg. the name of the user-selected default engine) is protected from tampering using verification hashes. While these hashes are by no way meant to be cryptographically secure, they should be unique to each profile, and so make tampering harder. Changing the storage format was also an opportunity to save slightly more data about how users installed engines. For example, if an engine was installed from OpenSearch discovery, we will remember the hostname of the website from which it was downloaded.</p>
+<p>We are not done. We have a few more doors to close. We also don't expect to ever be completely resistant to hijacking, as an attacker with local admin access can do whatever. We mostly aim to make hijacking hard enough that it will require some (minimal) engineering skills to do it. Dropping a file on disk or doing a search &amp; replace on the default engine's URL shouldn't be enough. It should require running local code. We can’t protect users from all their mistakes, but we can draw a line between malware-behavior and user-customization that's clear enough for antivirus vendors to enforce it for their users.</p>
+<p>We are still working on preventative measures. But a few releases from now, we can expect to start offering curative measures. With Firefox 45 we'll start recording information about engines origin. At some point (currently targeting Firefox 46), we could offer users who have non-default engines of unknown origin an opportunity to check their search settings and revert to the original default if they don't remember changing their default engine themselves. UX is currently thinking this through.</p></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2015/11/02/What-about-search-hijacking#comments" class="comment_count">3 comments</a>
+      </p>
+    
+    </div>
+
+    <div id="p135" class="post odd " lang="en" xml:lang="en">
+    <p class="day-date">Tuesday, March  3 2015</p>
+
+    <h2 class="post-title"><a
+    href="/post/2015/03/03/Mozilla-not-accepted-for-Google-Summer-of-Code-2015">Mozilla not accepted for Google Summer of Code 2015</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, March  3 2015, 10:56
+    
+    </p>
+
+    
+
+    <div class="post-content">As you may have already seen, Mozilla is not in the list of <a href="https://www.google-melange.com/gsoc/org/list/public/google/gsoc2015">organizations accepted for Google Summer of Code 2015</a>.<br /><br />People who have observed the list carefully may have noticed that there are fewer accepted organizations this year: 137 (down from <a href="https://www.google-melange.com/gsoc/org/list/public/google/gsoc2014">190 in 2014</a> and <a href="https://www.google-melange.com/gsoc/org/list/public/google/gsoc2013">177 in 2013</a>). Other organizations that have participated successfully several times are also not in the 2015 list (eg. Linux Foundation, Tor, ...).<br /><br />After a quick email exchange with Google last night, here is the additional information I have:<br /><ul><li>not accepting Mozilla was a difficult decision for them. It is not the result of a mistake on our part or an accident on their side.</li>
+<li>there's an assumption that not participating for one year would not be as damaging for us as it would be for some other organizations, due to us having already participated many times.</li>
+<li>this event doesn't affect negatively our chances of being selected next year, and we are encouraged to apply again.</li>
+</ul>
+<br />This news has been a surprise for me. I am disappointed, and I'm sure lots of people reading this are disappointed too. I would like to thank all the people who considered participating this year with Mozilla, and especially all the Mozillians who volunteered to mentor and contributed great project ideas. I would also like to remind students that while Summer of Code is a great opportunity to contribute to Mozilla, it's <a href="http://www.whatcanidoformozilla.org/#!/progornoprog/proglang">not the only one</a>. Feel free to contact mentors if you would like to work on some of the suggested ideas anyway.<br /><br />Let's try again next year!</div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2015/03/03/Mozilla-not-accepted-for-Google-Summer-of-Code-2015#comments" class="comment_count">10 comments</a>
+      </p>
+    
+    </div>
+
+    <div id="p134" class="post  " lang="en" xml:lang="en">
+    <p class="day-date">Wednesday, February 11 2015</p>
+
+    <h2 class="post-title"><a
+    href="/post/2015/02/11/FOSDEM-2015-slides-What-s-new-in-Firefox">FOSDEM 2015 slides - What&#39;s new in Firefox?</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Wednesday, February 11 2015, 15:48
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>This year at FOSDEM I talked about Firefox. I summarized the major changes that have been made to Firefox in 2014, and what our plans are for 2015.</p>
+<p>Here are the slides of my <a href="https://fosdem.org/2015/schedule/event/whats_new_in_firefox/">FOSDEM presentation</a>:<br />
+<a title="What's new in Firefox? - FOSDEM2015 slides" href="https://people.mozilla.org/~fqueze2/slides/fosdem2015/"><img alt="What's new in Firefox? What happened in 2014? What's the plan for 2015? FOSDEM 2015, by Florian Quèze" src="/public/fosdem2015-cover-slide.png" /></a></p></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2015/02/11/FOSDEM-2015-slides-What-s-new-in-Firefox#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p133" class="post odd " lang="en" xml:lang="en">
+    <p class="day-date">Thursday, January 22 2015</p>
+
+    <h2 class="post-title"><a
+    href="/post/2015/01/22/Project-ideas-wanted-for-Summer-of-Code-2015">Project ideas wanted for Summer of Code 2015</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Thursday, January 22 2015, 20:52
+    
+    </p>
+
+    
+
+    <div class="post-content"><div class="post-content"><p>Google is <a title=" Google Summer of Code 2015 and Google Code-in 2014 are on!" href="http://google-opensource.blogspot.fr/2014/10/google-summer-of-code-2015-and-google.html">running Summer of Code again in 2015</a>.
+Mozilla has had the pleasure of participating every year so far, and we
+are hoping to participate <a href="https://wiki.mozilla.org/SummerOfCode">again</a> this year. In the next few weeks, we need
+to prepare a list of suitable projects to support our application.<br />
+<br /><strong><strong>Can you think of a 3-month coding project you would love to guide a student through?</strong></strong> This is your chance to get a student
+focusing on it for 3 months! Summer of Code is a great opportunity to introduce new people to
+your team and have them work on
+projects you care about but that aren't on the critical path to shipping your next release.<br /><br />Here are the conditions for the projects:</p>
+<ul><li>completing the project should take roughly 3 months of effort for a student;</li>
+<li>any part of the Mozilla project (Firefox, Firefox OS, Thunderbird,
+Instantbird, SeaMonkey, Bugzilla, L10n, NSS, IT, and many more) can
+submit ideas, as long as they require coding work;</li>
+<li>
+there is a clearly identified mentor who can guide the student through the project.</li>
+</ul>
+<p><br />If
+you have an idea, please put it on the <a href="https://wiki.mozilla.org/Community:SummerOfCode15:Brainstorming">Brainstorming page</a>, which is our
+idea development scratchpad. Please read the instructions at the top –
+following them vastly increases chances of your idea getting added
+to the <a href="https://wiki.mozilla.org/Community:SummerOfCode15">formal Ideas page</a>.<br />
+<br />The deadline to submit project ideas and help us be selected by Google is February 20th.</p>
+<p>Note for students: the student application period starts on March 16th, but the sooner you start discussing project ideas with potential mentors, the better.<br /><br />Please feel free to discuss with me any question you may have related to Mozilla's participation in Summer of Code. Generic Summer of Code questions are likely already answered in the <a title=" Google Summer of Code 2015 Frequently Asked Questions " href="https://www.google-melange.com/gsoc/document/show/gsoc_program/google/gsoc2015/help_page">FAQ</a>.</p>
+</div></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2015/01/22/Project-ideas-wanted-for-Summer-of-Code-2015#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p132" class="post  " lang="en" xml:lang="en">
+    <p class="day-date">Sunday, July 27 2014</p>
+
+    <h2 class="post-title"><a
+    href="/post/2014/07/27/Firefox-is-awesome">Firefox is awesome</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Sunday, July 27 2014, 22:15
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>"<em>Hey,
+you know what? Firefox is awesome!</em>" someone exclaimed at the other end
+of the <a title="La Coroutine" href="http://www.lacoroutine.org/">coworking space</a> a few weeks ago. This piqued my curiosity, and I
+moved closer to see what she was so excited about.</p>
+<p>When
+I saw the feature she was delighted of finding, it reminded me a
+similar situation several years ago. In high school, I was trying to
+convince a friend to switch from IE to Mozilla. The arguments about
+respecting web standards didn't convince him. He tried Mozilla anyway to
+please me, and found one feature that excited him.<br />
+He
+had been trying to save some images from webpages, and for some reason
+it was difficult to do (possibly because of context menu hijacking,
+which was common at the time, or maybe because the images were displayed
+as a background, …). He had even written some Visual Basic code to
+parse the saved HTML source code and find the image urls, and then
+downloaded them, but the results weren't entirely satisfying.<br />
+Now
+with Mozilla, he could just right click, select "View Page Info", click
+on the "Media" tab, and find a list of all the images of the page. I
+remember how excited he looked for one second, until he clicked a
+background image in the list and the preview stayed blank; he then
+clicked the "Save as" button anyway and… nothing happened. Turns out
+that "Save as" button was just producing an error in the Error Console.
+He then looked at me, very disappointed, and said that my Mozilla isn't
+ready yet.<br />
+After that disappointment, I didn't insist much on him using Mozilla instead of IE (I think he did switch anyway a few weeks or months later).</p>
+<p>A few months later, as I had time during summer vacations, I tried to
+create an add-on for the last thing I could do with IE but not Firefox:
+list the hostnames that the browser connects to when loading a page (the
+add-on, <a href="https://addons.mozilla.org/en-US/firefox/addon/view-dependencies/">View Dependencies</a>, is on AMO). I used this to maintain a <a href="http://en.wikipedia.org/wiki/Hosts_%28file%29">hosts file</a> that was blocking ads on the network's gateway.<br />
+Working
+on this add-on project caused me to look at the existing Page Info code
+to find ideas about how to look through the resources loaded by the
+page. While doing this, I stumbled on the problem that was causing
+background image previews to not be displayed. Exactly 10 years ago, I
+created a patch, created a bugzilla account (I had been lurking on
+bugzilla for a while already, but without creating an account as I
+didn't feel I should have one until I had something to contribute), and
+<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=229441#c12">attached the patch</a> to the existing <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=229441">bug</a> about this background preview issue.<br />
+Two days later, the patch was reviewed (thanks db48x!), I addressed the
+review comment, attached a new patch, and it was checked-in.<br />
+I remember how excited I was to verify the next day that the bug was gone
+in the next nightly, and how I checked that the code in the new nightly
+was actually using my patch.</p>
+<p>A couple months later, I <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=239472">fixed the "Save as" button</a> too in time for Firefox 1.0.</p>
+<p>Back to 2014. The reason why someone in my coworking space was finding
+Firefox so awesome is that "<em>You can click "View Page Info", and then
+view all the images of the page and save them.</em>" Wow. I hadn't heard
+anybody talking to me about Page Info in years. I did use it a lot
+several years ago, but don't use it that much these days. I do agree
+with her that <strong>Firefox is awesome</strong>, not really because it can save images
+(although that's a great feature other browsers don't have), but <strong>because
+anybody can make it better</strong> for his/her own use, and by doing so making
+it awesome <strong>for millions of other people</strong> now but also in the future. Like
+I did, ten years ago.</p></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2014/07/27/Firefox-is-awesome#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p131" class="post odd " lang="en" xml:lang="en">
+    <p class="day-date">Friday, July 25 2014</p>
+
+    <h2 class="post-title"><a
+    href="/post/2014/07/25/Converting-old-Mac-minis-into-CentOS-Instantbird-build-slaves">Converting old Mac minis into CentOS Instantbird build slaves</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Friday, July 25 2014, 23:24
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>A while ago, I received a few <a href="http://armenzg.blogspot.de/2014/05/do-you-need-used-mac-mini-for-your.html">retired Mozilla minis</a>. Today 2 of them started their new life as CentOS6 build slaves for Instantbird, which means <a href="http://blog.instantbird.org/2014/07/linux-nightly-builds-back/">we now have Linux nightlies again</a>! Our previous Linux build slave, running CentOS5, was no longer able to build nightlies based on the current mozilla-central code, and this is the reason why we haven't had Linux nightlies since March. We know it's been a long wait, but to help our dear Linux testers forgive us, we started offering 64bit nightly builds!</p>
+<p>For the curious, and for future reference, here are the steps I followed to install these two new build slaves:</p>
+<h2>Partition table</h2>
+<p>The Mac minis came with a GPT partition table and an hfs+ partition that we don't want. While the CentOS installer was able to detect them, the grub it installed there didn't work. The solution was to convert the GPT partition table to the MBR older format. To do this, boot into a modern linux distribution (I used an Ubuntu 13.10 live dvd that I had around), install <code>gdisk</code> (<code>sudo apt-get update &amp;&amp; sudo apt-get gdisk</code>) and use it to edit the disk's partition table:</p>
+
+<p><code>sudo gdisk /dev/sda</code><br />Press '<code>r</code>' to start recovery/transformation, '<code>g</code>' to convert from GPT to MBR, '<code>p</code>' to see the resulting partition table, and finally '<code>w</code>' to write the changes to disk (instructions initially from <a href="http://www.firewing1.com/blog/2012/03/05/how-convert-gpt-disk-layout-ms-dosmbr-layout-without-data-loss-and-gigabyte-hybrid">here</a>).<br />Exit gdisk.<br />Now you can check the current partition table using gparted. At this point I deleted the hfs+ partition.</p>
+
+<h2>Installing CentOS</h2>
+<p>The version of CentOS needed to use the current Mozilla build tools is CentOS 6.2. We tried before using another (slightly newer) version, and we never got it to work.</p>
+<p>Reboot on a CentOS 6.2 livecd (press the '<code>c</code>' key at startup to force the mac mini to look for a bootable CD).<br />Follow the instructions to install CentOS on the hard disk.<br />I customized the partition table a bit (50000MB for <code>/</code>, 2048MB of swap space, and the rest of the disk for <code>/home</code>).</p>
+<p>The only non-obvious part of the CentOS install is that the boot loaded needs to be installed on the MBR rather than on the partition where the system is installed. When the installer asks where grub should be installed, set it to /dev/sda (the default is /dev/sha2, and that won't boot). Of course I got this wrong in my first attempts.</p>
+<h2>Installing Mozilla build dependencies</h2>
+<p>First, install an editor that is usable to you. I typically use emacs, so: <code>sudo yum install emacs</code></p>
+<p>The Mozilla Linux build slaves use a specifically tweaked version of gcc so that the produced binaries have low runtime dependencies, but the compiler still has the build time feature set of gcc 4.7. If you want to use something as old as CentOS6.2 to build, you <strong>need</strong> this specific compiler.</p>
+<p>The good thing is, there's a yum repository publicly available where all the customized mozilla packages are available. To install it, create a file named <code>/etc/yum.repos.d/mozilla.repo</code> and make it contain this:</p>
+<pre>[mozilla]
+name=Mozilla
+baseurl=http://puppetagain.pub.build.mozilla.org/data/repos/yum/releng/public/CentOS/6/<em>x86_64</em>/
+enabled=1
+gpgcheck=0</pre><p>Adapt the <code>baseurl</code> to finish with <code>i386</code> or <code>x86_64</code> depending on whether you are making a 32 bit or 64 bit slave.</p>
+<p>After saving this file, you can check that it had the intended effect by running this comment to list the packages from the mozilla repository: <code>repoquery -q --repoid=mozilla -a</code><br /><br />You want to install the version of gcc473 and the version of mozilla-python27 that appear in that list.</p>
+<p>You also need several other build dependencies. <a href="https://developer.mozilla.org/en-US/">MDN </a>has <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Build_Instructions/Linux_Prerequisites#RedHat_Enterprise_Linux_%28RHEL%29.2FCentOS.2FFedora">a page listing them</a>:</p>
+<code>yum groupinstall 'Development Tools' 'Development Libraries' 'GNOME Software Development'</code><br />
+<code>yum install mercurial autoconf213 glibc-static libstdc++-static yasm wireless-tools-devel mesa-libGL-devel alsa-lib-devel libXt-devel gstreamer-devel gstreamer-plugins-base-devel pulseaudio-libs-devel</code><p>
+Unfortunately, two dependencies were missing on that list (I've now fixed the page):
+<br /><code>yum install gtk2-devel dbus-glib-devel</code></p>
+
+<p>At this point, the machine should be ready to build Firefox.</p>
+<p>Instantbird, because of libpurple, depends on a few more packages:<br /><code>yum install avahi-glib-devel krb5-devel</code></p>
+<p>And it will be useful to have ccache:<br />
+<code>yum install ccache</code></p>
+<h2>Installing the buildbot slave</h2>
+<p>First, install the buildslave command, which unfortunately doesn't come as a yum package, so you need to install easy_install first:</p>
+<p><code>yum install python-setuptools python-devel mpfr<br />easy_install buildbot-slave</code></p>
+<p>python-devel and mpfr here are build time dependencies of the buildbot-slave package, and not having them installed will cause compiling errors while attempting to install buildbot-slave.</p>
+<p>We are now ready to actually install the buildbot slave. First let's create a new user for buildbot:</p>
+
+<code><p>adduser buildbot<br />su buildbot<br />cd /home/buildbot</p>
+
+</code><p>Then the command to create the local slave is:</p>
+<p><code>buildslave create-slave --umask=022 /home/buildbot/buildslave buildbot.instantbird.org:9989 linux-s<em>N password</em></code></p>
+<p>The buildbot slave will be significantly more useful if it starts automatically when the OS starts, so let's edit the crontab (<code>crontab -e</code>) to add this entry:<br /><code>@reboot PATH=/usr/local/bin:/usr/bin:/bin /usr/bin/buildslave start /home/buildbot/buildslave</code></p>
+<p>The reason why the PATH environment variable has to be set here is that the default path doesn't contain /usr/local/bin, but that's where the mozilla-python27 packages installs python2.7 (which is required by <code>mach</code> during builds).</p>
+<p>One step in the Instantbird builds configured on our buildbot use <code>hg clean --all</code> and this requires the purge mercurial extension to be enabled, so let's edit <code>~buidlbot/.hgrc</code> to look like this:<br /><code>$ cat ~/.hgrc <br />[extensions]<br />purge =</code></p>
+<p>Finally, ssh needs to be configured so that successful builds can be uploaded automatically. Copy and adapt <code>~buildbot/.ssh</code> from an existing working build slave. The files that are needed are <code>id_dsa</code> (the ssh private key) and <code>known_hosts</code> (so that ssh doesn't prompt about the server's fingerprint the first time we upload something).</p>
+<p>Here we go, working Instantbird linux build slaves! Figuring out all these details for our first CentOS6 slave took me a few evenings, but doing it again on the second slave was really easy.</p></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2014/07/25/Converting-old-Mac-minis-into-CentOS-Instantbird-build-slaves#comments" class="comment_count">one comment</a>
+      </p>
+    
+    </div>
+
+    <div id="p130" class="post  " lang="en" xml:lang="en">
+    <p class="day-date">Tuesday, May 20 2014</p>
+
+    <h2 class="post-title"><a
+    href="/post/2014/05/20/Summer-of-Code-2014-projects">Summer of Code 2014 projects</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, May 20 2014, 16:50
+    
+    </p>
+
+    
+
+    <div class="post-content"><p>The coding period is starting for Google Summer of Code 2014. I am pleased to list the 28 projects (7 more than last year!) that are mentored this year under the Mozilla banner.</p>
+<p>The title of each project is linked to the location where the student will be posting weekly updates on their progress, if you want to follow along with a project you are interested in. I’m sure they would appreciate any help or advice you have :-) Please help them write useful code during the summer!</p>
+<table>
+<tbody><tr><th>Project Title
+</th><th>Student
+</th><th>Mentor
+</th></tr><tr><td><a href="http://www.iakshay.net/google-summer-of-code/">MDN – Bug Fixing and Polishing</a>
+</td><td>Akshay Aurora
+</td><td>David Walsh
+</td></tr><tr><td><a href="http://andregarzia.com/pages/en/blog/">Firefox OS Games Resources</a>
+</td><td>Andre Alves Garzia
+</td><td>Soledad Penades
+</td></tr><tr><td><a href="https://wiki.mozilla.org/SpeechRTC_-_Speech_enabling_the_open_web">Development of both online as offline speech recognition to B2G and Firefox</a>
+</td><td>Andre Natal
+</td><td>Guilherme Gonçalves
+</td></tr><tr><td><a href="http://meemoo.org/blog">Porting key Meemoo modules to NoFlo</a>
+</td><td>Vilson Vieira
+</td><td>Forrest Oliphant
+</td></tr><tr><td><a href="http://pankajmalhotra.com/">Functional Test Suite and Features for QA Taskboard - One and Done</a>
+</td><td>Pankaj Malhotra
+</td><td>Bob Silverberg
+</td></tr><tr><td><a href="http://codingowl.tumblr.com/gsoc2014">Implement Zest recorder and runner </a>
+</td><td>Sunny Gogoi
+</td><td>Simon Bennetts
+</td></tr><tr><td>Improve font handling and text shaping in Servo
+</td><td>Patryk Obara
+</td><td>Patrick Walton
+</td></tr><tr><td><a href="http://nitsurat.acm.org/gargsms/">Add learning capability in the Gaia Keyboard prediction</a>
+</td><td>Sukant Garg
+</td><td>Jan Jongboom
+</td></tr><tr><td><a href="http://blog.gabrielivanica.com/">Browsercast</a>
+</td><td>Gabriel Ivanica
+</td><td>Greg Wilson
+</td></tr><tr><td><a href="https://wiki.mozilla.org/User:Ishitva">Migrate from YUI2 to YUI3 . Bug 453268</a>
+</td><td>Ishitva Goel
+</td><td>Byron Jones
+</td></tr><tr><td><a href="http://yesitsyash.blogspot.in/search/label/google%20summer%20of%20code">Implement Speech Synthesis on Desktop Firefox</a>
+</td><td>Yashasvi Girdhar
+</td><td>Eitan
+</td></tr><tr><td><a href="http://sigwinch.wordpress.com/">Add markdown support to Bugzilla</a>
+</td><td>Koosha Khajehmoogahi
+</td><td>David Lawrence
+</td></tr><tr><td><a href="http://rishav006.wordpress.com/">Improved messaging functionality and interaction in the SMS app</a>
+</td><td>Kumar Rishav
+</td><td>Gabriele Svelto
+</td></tr><tr><td><a href="http://me-levens.rhcloud.com/">Update Lightning Invitations to Latest Specification</a>
+</td><td>Malintha Fernando
+</td><td>Mohit Kanwal
+</td></tr><tr><td><a href="http://benjamin.smedbergs.us/weekly-updates.fcgi/user/manishearth%40gmail.com">Implement XMLHttpRequest in Servo</a>
+</td><td>Manish Goregaokar
+</td><td>Josh Matthews
+</td></tr><tr><td><a href="http://mayanktg.github.io">Instantbird: WebRTC Support</a>
+</td><td>Mayank Kumar
+</td><td>BenediktP
+</td></tr><tr><td><a href="http://blog.nhnt11.com/">Instantbird: Indexed Chat History and Infinite Conversation Scrollback</a>
+</td><td>Nihanth Subramanya
+</td><td>aleth
+</td></tr><tr><td><a href="http://piotr.banaszkiewicz.org/tags/gsoc/">Peer instruction on the Web</a>
+</td><td>Piotr Banaszkiewicz
+</td><td>mhoye
+</td></tr><tr><td><a href="http://abyteaday.quora.com/">Implementation of SVG Backend for PDF.js</a>
+</td><td>Pramodh KP
+</td><td>yury
+</td></tr><tr><td><a href="http://blog.121n3.com/">A Desktop Environment based on B2G</a>
+</td><td>Towfique Anam
+</td><td>Fabrice Desré
+</td></tr><tr><td><a href="http://blog.rgaiacs.com/tags/gsoc2014.html">Math virtual keyboard</a>
+</td><td>Raniere Silva
+</td><td>Salva
+</td></tr><tr><td><a href="http://summeroflightning.wordpress.com/">Improve Calendar Backends</a>
+</td><td>Reid Anderson
+</td><td>Philipp Kewisch
+</td></tr><tr><td><a href="http://www.wiredcrow.com/?page_id=104">Kitherder, web application for the Security Mentorships program</a>
+</td><td>Renee Cheung
+</td><td>Yvan Boily
+</td></tr><tr><td><a href="http://sawrubh.tumblr.com/">FileLinks in IMs / File transfer</a>
+</td><td>Saurabh Anand
+</td><td>clokep
+</td></tr><tr><td><a href="http://sshagarwal.blogspot.fr/">Thunderbird - Make the unit test framework work with maildir mailbox format</a>
+</td><td>Suyash Agarwal
+</td><td>R Kent James
+</td></tr><tr><td><a href="http://tharshan-gsoc.logdown.com/">Mozilla Intellego -- Terminology-driven automatic translation of web sites.</a>
+</td><td>Tharshan Muthulingam
+</td><td>Jeff
+</td></tr><tr><td><a href="https://wiki.mozilla.org/Jetpack/e10s">Implement Electrolysis Support for Addon SDK</a>
+</td><td>Tomislav Jovanovic
+</td><td>gozala
+</td></tr><tr><td><a href="https://vaibhavag.wordpress.com/">Mochitest Failure Investigator</a>
+</td><td>Vaibhav Agrawal
+</td><td>joelmaher
+</td></tr></tbody></table></div>
+
+    
+      <p class="post-info-co">
+      <a href="/post/2014/05/20/Summer-of-Code-2014-projects#comments" class="comment_count">no comment</a>
+      </p>
+    
+    </div>
+
+
+    <p class="pagination"><a href="/category/Mozilla/page/2" class="prev">&#171;
+    previous entries</a> - 
+    page 1 of 5
+    </p>
+
+
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="blog.queze.net" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul><li class="topnav-home"><a href="/">Home</a><span> - </span></li><li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2><ul><li class="category-current"><a href="/category/Mozilla">Mozilla</a></li><li><a href="/category/Voitures-anciennes">Voitures anciennes</a><ul><li><a href="/category/Voitures-anciennes/Ami-6">Ami 6</a></li></ul></li><li><a href="/category/Divers">Divers</a></li></ul></div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    
+  </div> <!-- End #blogextra -->
+</div>
+
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© 2005-2017 Florian Quèze</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>

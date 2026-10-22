@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet title="XSL formatting" type="text/xsl" href="/feed/rss2.xsl" ?>
+<rss version="2.0"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Florian Quèze - Tag - Instantbird</title>
+  <link>http://blog.queze.net/</link>
+  <atom:link href="http://blog.queze.net/feed/tag/Instantbird/rss2" rel="self" type="application/rss+xml"/>
+  <description>Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ...</description>
+  <language>en</language>
+  <pubDate>Sun, 22 Mar 2026 03:43:22 +0100</pubDate>
+  <copyright></copyright>
+  <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+
+  <item>
+    <title>Instantbird 1.0, sorti simultanément en 11 langues (dont le français évidemment)</title>
+    <link>http://blog.queze.net/post/2011/06/28/Instantbird-1.0%2C-sorti-simultan%C3%A9ment-en-11-langues-%28dont-le-fran%C3%A7ais-%C3%A9videmment%29</link>
+    <guid isPermaLink="false">urn:md5:9f4fd6a092824126812ed44af9adc397</guid>
+    <pubDate>Tue, 28 Jun 2011 16:12:19 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;&lt;a href=&quot;http://instantbird.com/&quot;&gt;Instantbird 1.0&lt;/a&gt; vient de sortir.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;&lt;img src=&quot;http://www.instantbird.com/press/logos/instantbird-text-512x128.png&quot; alt=&quot;Instantbird logo&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Cette version apporte de très nombreuses améliorations. Cette fois ci, non seulement le logiciel en lui-même est traduit, mais le site web aussi, alors pour savoir ce qui est changé depuis la version précédente, il suffit donc tout simplement d'&lt;a href=&quot;http://www.instantbird.com/release-notes.html&quot;&gt;aller voir sur le site d'Instantbird&lt;/a&gt; lui-même &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:)&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;&lt;img src=&quot;http://www.instantbird.com/press/screenshots/1.0-winaero-screenshot-homepage-big.png&quot; alt=&quot;Instantbird 1.0 - copie d'écran sur Windows 7&quot;/&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;De nombreux blogs reprennent déjà l'information. N'hésitez pas à faire de même (ou à partager sur Facebook ou twitter) afin que vos amis en profitent aussi&amp;nbsp;!&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Instantbird 0.2</title>
+    <link>http://blog.queze.net/post/2010/07/16/Instantbird-0.2</link>
+    <guid isPermaLink="false">urn:md5:dc74e849246e96e046cc6d900825d7dc</guid>
+    <pubDate>Fri, 16 Jul 2010 14:46:43 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;Après des mois de développement, Instantbird 0.2 est finalement sorti cette semaine dans plusieurs langues, dont le français&amp;nbsp;!&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;&lt;img style=&quot;border: none;&quot; src=&quot;http://blog.queze.net/pict/instantbird-text-512x128.png&quot; alt=&quot;logo Instantbird&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Cette nouvelle version a été l'occasion de revoir complètement le site web afin de mettre l'accent sur l'utilisation d'Instantbird, et en particulier sa simplicité, plutôt que sur les technologies mises en jeu.&lt;/p&gt;
+
+&lt;p&gt;Sans plus attendre, découvrez &lt;a href=&quot;http://www.instantbird.com/&quot;&gt;Instantbird 0.2&lt;/a&gt;! (&lt;a href=&quot;http://blog.instantbird.org/a25-instantbird-0-2-released.html&quot;&gt;annonce en anglais&lt;/a&gt;, &lt;a href=&quot;http://blog.instantbird.org/&quot;&gt;blog du projet&lt;/a&gt;)&lt;/p&gt;
+
+</description>
+  </item>
+
+  <item>
+    <title>Instantbird, pour la première fois en français !</title>
+    <link>http://blog.queze.net/post/2010/03/20/Instantbird%2C-pour-la-premi%C3%A8re-fois-en-fran%C3%A7ais-%21</link>
+    <guid isPermaLink="false">urn:md5:1de66770d23ba7522de8862565f084bd</guid>
+    <pubDate>Sat, 20 Mar 2010 14:09:03 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;Hier, Instantbird 0.2 beta 2 est sorti, et pour la première fois il est disponible en français&amp;nbsp;!&lt;/p&gt;
+
+&lt;p&gt;Cette nouvelle version beta apporte bien sûr son lot d'améliorations. Pour lire les détails et la télécharger, c'est &lt;a href=&quot;http://www.instantbird.com/download-0.2b2.html&quot;&gt;par ici&lt;/a&gt;&amp;nbsp;! &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:)&quot; /&gt;&lt;/p&gt; 
+</description>
+  </item>
+
+  <item>
+    <title>Tshirt Instantbird</title>
+    <link>http://blog.queze.net/post/2008/11/11/Tshirt-Instantbird</link>
+    <guid isPermaLink="false">urn:md5:80a1a7b1ad47627967db659bf9cd4818</guid>
+    <pubDate>Tue, 11 Nov 2008 22:17:59 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;Voici des photos d'un de mes cadeau d'anniversaire (merci Tintin&amp;nbsp;!)&amp;nbsp;:&lt;/p&gt;
+&lt;p&gt;
+ &lt;a href=&quot;http://blog.queze.net/post/2008/11/11/pict/tshirt-ib1.jpg&quot; title=&quot;Voir en plus grand&quot;&gt;&lt;img src=&quot;http://blog.queze.net/pict/tshirt-ib1.jpg&quot; height=&quot;400px&quot; alt=&quot;TShirt Instantbird vu de face&quot; /&gt;&lt;/a&gt;
+ &lt;a href=&quot;http://blog.queze.net/post/2008/11/11/pict/tshirt-ib2.jpg&quot; title=&quot;Voir en plus grand&quot;&gt;&lt;img src=&quot;http://blog.queze.net/pict/tshirt-ib2.jpg&quot; height=&quot;400px&quot; alt=&quot;TShirt Instantbird vu de dos&quot; /&gt;&lt;/a&gt;
+&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Instantbird 0.1.1</title>
+    <link>http://blog.queze.net/post/2008/03/03/Instantbird-0.1.1</link>
+    <guid isPermaLink="false">urn:md5:7a24cc1f9e29e82489811103d66a999e</guid>
+    <pubDate>Mon, 03 Mar 2008 15:46:43 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;Instantbird 0.1.1 est disponible&amp;nbsp;!&lt;/p&gt;
+
+&lt;p&gt;Les changements sont principalement des corrections de bugs mais il y a tout de même une nouvelle fonctionnalité&amp;nbsp;: il est possible de rejoindre un salon de discussion IRC, ce qui permettra aux utilisateurs de venir parler avec nous sur &lt;code&gt;irc.mozilla.org#instantbird&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;L'annonce complète est sur le &lt;a href=&quot;http://blog.instantbird.org/&quot; title=&quot;Blog@Instantbird.org&quot;&gt;blog d'Instantbird&lt;/a&gt; (en anglais).&lt;/p&gt;
+
+&lt;p&gt;Cette nouvelle version est téléchargeable depuis le site &lt;a href=&quot;http://www.instantbird.com/download.html&quot; &gt;instantbird.com&lt;/a&gt;.&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Instantbird 0.1, un jour plus tard...</title>
+    <link>http://blog.queze.net/post/2007/10/19/Instantbird-0.1%2C-un-jour-plus-tard...</link>
+    <guid isPermaLink="false">urn:md5:2010ed2cc9cf3106f0e14353e5f178d7</guid>
+    <pubDate>Fri, 19 Oct 2007 22:32:55 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;Plus de 1600 téléchargements.&lt;/p&gt;
+&lt;p&gt;Plus de 30 posts de blog.&lt;/p&gt;
+
+&lt;p&gt;Graphique de la bande passante sur le serveur de téléchargement&amp;nbsp;:&lt;br/&gt;
+&lt;img src=&quot;http://blog.queze.net/pict/bp-ib0.1.png&quot; alt=&quot;Graphique de bande passante&quot;/&gt;&lt;/p&gt;
+
+&lt;p&gt;Ils en parlent&amp;nbsp;: &lt;a href=&quot;http://iamthewalr.us/blog/2007/10/18/instantbird/&quot;&gt;Collin Barrett&lt;/a&gt;, &lt;a href=&quot;http://ascher.ca/blog/2007/10/18/instantbird/&quot;&gt;David Ascher&lt;/a&gt;, &lt;a href=&quot;http://www.svmlemag.fr/actu/01966/instantbird_une_nouvelle_messagerie_instantanee_prend_son_envol&quot;&gt;SVM&lt;/a&gt;, &lt;a href=&quot;http://mozillalinks.org/wp/2007/10/instantbird-mozilla-based-instant-messaging/&quot;&gt;Mozilla Links&lt;/a&gt; (qui a d'ailleurs souhaité que je réponde à &lt;a href=&quot;http://mozillalinks.org/wp/2007/10/florian-queze-and-quentin-castier-on-instantbird/&quot;&gt;quelques questions&lt;/a&gt; sur Quentin et moi ainsi que sur nos intentions pour ce projet), et quelques blogs dans différentes langues&amp;nbsp;: &lt;a href=&quot;http://cybernetnews.com/2007/10/19/instantbird-where-mozilla-meets-pidgin/&quot;&gt;en anglais&lt;/a&gt;, &lt;a href=&quot;http://stadt-bremerhaven.de/2007/10/19/instantbird-ein-neuer-messenger/&quot;&gt;en allemand&lt;/a&gt;, &lt;a href=&quot;http://www.appsmac.com/?p=454&quot;&gt;en espagnol&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Beaucoup de blogs en espagnol racontent n'importe quoi, suivant apparemment le principe du téléphone Arabe. Ils sont allés pour certains jusqu'à écrire &quot;La fondation Mozilla a sorti discrètement la nuit dernière un client de messagerie instantanée.&quot; ce qui est complètement faux.&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Instantbird 0.1</title>
+    <link>http://blog.queze.net/post/2007/10/18/Instantbird-0.1</link>
+    <guid isPermaLink="false">urn:md5:d09050bc32d226ea53241b6d617c0330</guid>
+    <pubDate>Thu, 18 Oct 2007 18:08:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    &lt;p style=&quot;text-align: center;&quot;&gt;&lt;img src=&quot;http://www.instantbird.com/press/logos/instantbird-256.png&quot; alt=&quot;Instantbird&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Instantbird est un client de messagerie instantanée profitant des possibilités de &lt;a href=&quot;http://developer.pidgin.im&quot;&gt;libpurple&lt;/a&gt; et de XULRunner.&lt;/p&gt;
+&lt;p&gt;L'idée est de créer un client de messagerie qui comme Firefox et Thunderbird, soit disponible sur tous les systèmes d'exploitations couramment utilisés et de permettre une grande extensibilité.&lt;/p&gt;
+&lt;p&gt;Après des mois de travail, je suis heureux de mettre enfin en téléchargement une première version (0.1) qui permet d'avoir une petite idée de ce qu'on peut espérer pour la suite &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:-)&quot; /&gt;.&lt;/p&gt;
+&lt;p&gt;Pour en savoir plus, je vous invite à visiter &lt;a href=&quot;http://www.instantbird.com/&quot;&gt;www.instantbird.com&lt;/a&gt;.&lt;/p&gt;</description>
+  </item>
+
+</channel>
+</rss>

@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="INDEX, FOLLOW" />
+
+  <title>Serveurs DNS ovh... grr - Florian Quèze</title>
+
+  <meta name="description" lang="en" content="Voila le message d&#39;erreur sur lequel se termine ma nuit de configuration de ma passerelle vpn :
+
+(queze_f@dd 2359)ssh florian@vpn.queze.net
+ssh: vpn.queze.net: No address" />
+  <meta name="date" scheme="W3CDTF" content="2006-12-31T04:23:51+01:00" />
+
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="next" href="/post/2007/01/30/Avec-Vista%2C-faites-Wouah-%21"
+  title="Avec Vista, faites &quot;Wouah&quot; !" />
+  <link rel="prev" href="/post/2006/12/28/Il-y-a-encore-des-gens-civilis%C3%A9s-qui-ne-jettent-pas-tout-%21-%3A-%29"
+  title=" Il y a encore des gens civilisés qui ne jettent pas tout ! :-)" />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="dc-post">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">Florian Quèze</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+
+  <p id="navlinks">
+  <a href="/post/2006/12/28/Il-y-a-encore-des-gens-civilis%C3%A9s-qui-ne-jettent-pas-tout-%21-%3A-%29"
+  title=" Il y a encore des gens civilisés qui ne jettent pas tout ! :-)" class="prev">&#171; Il y a encore des gens civilisés qui ne jettent</a>
+   <span>-</span> <a href="/post/2007/01/30/Avec-Vista%2C-faites-Wouah-%21"
+  title="Avec Vista, faites &quot;Wouah&quot; !" class="next">Avec Vista, faites &quot;Wouah&quot; ! &#187;</a>
+  </p>
+
+  <div id="p77" class="post">
+    <h2 class="post-title">Serveurs DNS ovh... grr</h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Sunday, December 31 2006, 04:23
+    
+    - <a href="/post/2006/12/31/Serveurs-DNS-ovh...-grr">Permalink</a>
+    </p>
+
+    
+
+    <div class="post-content">
+   <p>Voila le message d'erreur sur lequel se termine ma nuit de configuration de ma passerelle vpn&nbsp;:</p>
+<pre>
+(queze_f@dd 2359)ssh florian@vpn.queze.net
+ssh: vpn.queze.net: No address associated with hostname
+(queze_f@dd 2361)ping vpn.queze.net
+ping: Cannot resolve "vpn.queze.net" (Host name lookup failure)
+</pre>
+
+<p>Requêtes DNS avec <a href="http://www.dnsstuff.com">dnsstuff</a> (site très pratique)&nbsp;:</p>
+
+<pre>
+Searching for www.queze.net A record at a.root-servers.net [198.41.0.4]: Got referral to D.GTLD-SERVERS.net. (zone: net.) [took 10 ms]
+Searching for www.queze.net A record at D.GTLD-SERVERS.net. [192.31.80.30]: Got referral to ns.queze.net. (zone: queze.net.) [took 46 ms]
+Searching for www.queze.net A record at ns.queze.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.queze.net A record at ns.queze.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.queze.net A record at dns.queze.net. [213.186.33.102]: Timed out.  Trying again.
+Searching for www.queze.net A record at dns.queze.net. [213.186.33.102]: Timed out.  Trying again.
+Searching for www.queze.net A record at ns.queze.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.queze.net A record at dns.queze.net. [213.186.33.102]: Timed out.  Trying again.
+</pre>
+
+<pre>
+Searching for www.ovh.com A record at b.root-servers.net [192.228.79.201]: Got referral to J.GTLD-SERVERS.NET. (zone: com.) [took 109 ms]
+Searching for www.ovh.com A record at J.GTLD-SERVERS.NET. [192.48.79.30]: Got referral to ns.ovh.net. (zone: ovh.com.) [took 235 ms]
+Searching for www.ovh.com A record at ns.ovh.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.ovh.com A record at dns.ovh.net. [213.186.33.102]: Timed out.  Trying again.
+Searching for www.ovh.com A record at ns.ovh.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.ovh.com A record at dns.ovh.net. [213.186.33.102]: Timed out.  Trying again.
+Searching for www.ovh.com A record at ns.ovh.net. [212.27.32.132]: Timed out.  Trying again.
+Searching for www.ovh.com A record at ns.ovh.net. [212.27.32.132]: Timed out.  Trying again.
+</pre>
+
+<pre>
+Note that these results are obtained in real-time, meaning that these are <b>not</b> cached results.
+These results are what DNS resolvers all over the world will see right now (unless they have cached information).
+</pre>
+
+<p>Après les serveurs mails qui mettent des heures pour transférer un email, voici les serveurs DNS complètement down. Merci OVH&nbsp;!</p>
+
+</div>
+  </div>
+
+  
+
+
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="blog.queze.net" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul><li class="topnav-home"><a href="/">Home</a><span> - </span></li><li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2><ul><li><a href="/category/Mozilla">Mozilla</a></li><li><a href="/category/Voitures-anciennes">Voitures anciennes</a><ul><li><a href="/category/Voitures-anciennes/Ami-6">Ami 6</a></li></ul></li><li><a href="/category/Divers">Divers</a></li></ul></div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    
+  </div> <!-- End #blogextra -->
+</div>
+
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© 2005-2017 Florian Quèze</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>

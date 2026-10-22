@@ -1,0 +1,128 @@
+body {
+background-color:#8F9645;
+color:#625D47;
+font-family:Arial, Helvetica, sans-serif;
+background-image:url(/public/blowup-images/body-bg.png);
+}
+.post-tags li a:link, .post-tags li a:visited, .post-info-co a:link, .post-info-co a:visited {
+color:#625D47;
+}
+#page {
+font-size:1.2em;
+}
+.post-content, .post-excerpt, #comments dd, #pings dd, dd.comment-preview {
+line-height:1.4em;
+}
+#top h1 a {
+color:#DBDB9D;
+}
+#top h1 {
+font-size:3.5em;
+font-family:Arial, Helvetica, sans-serif;
+left:23px;
+width:auto;
+top:5px;
+}
+#top {
+height:130px;
+background-image:url(/public/blowup-images/page-t.png);
+}
+.day-date {
+color:#826228;
+font-family:Georgia, serif;
+font-size:1em;
+}
+a {
+color:#646B10;
+}
+a:visited {
+color:#919924;
+}
+a:hover, a:focus, a:active {
+color:#484C12;
+}
+#comment-form input, #comment-form textarea {
+color:#646B10;
+}
+#comment-form input.preview {
+color:#646B10;
+}
+#comment-form input.preview:hover {
+background:#484C12;
+border-color:#484C12;
+}
+#comment-form input.submit {
+color:#646B10;
+}
+#comment-form input.submit:hover {
+background:#484C12;
+border-color:#484C12;
+}
+#sidebar {
+color:#858547;
+}
+#sidebar h2 {
+color:#8F9645;
+}
+#sidebar h3 {
+font-family:Georgia, serif;
+color:#826228;
+}
+#sidebar ul {
+border-top-color:#95956B;
+}
+#sidebar li {
+border-bottom-color:#95956B;
+}
+#topnav ul {
+border-bottom-color:#95956B;
+}
+#sidebar li a {
+color:#858547;
+}
+#sidebar li a:visited {
+color:#8F9645;
+}
+#sidebar li a:hover, #sidebar li a:focus, #sidebar li a:active {
+color:#826228;
+}
+#search input {
+color:#858547;
+}
+#search .submit {
+color:#858547;
+}
+#search .submit:hover {
+background:#826228;
+border-color:#826228;
+}
+.post-title {
+color:#806432;
+font-family:Georgia, serif;
+font-size:1.6em;
+}
+.post-title a, .post-title a:visited {
+color:#806432;
+}
+#comments dd {
+background-color:#D6DE91;
+color:#826228;
+background-image:url(/public/blowup-images/comment-b.png);
+}
+#prelude, #prelude a {
+color:#484432;
+}
+#footer p {
+background-color:#484432;
+color:#A6AF50;
+font-size:1em;
+}
+#footer p a {
+color:#DBDB9D;
+}
+#footer {
+background-image:url(/public/blowup-images/page-b.png);
+}
+#comments dt {
+background-image:url(/public/blowup-images/comment-t.png);
+}

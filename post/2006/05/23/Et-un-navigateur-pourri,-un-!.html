@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="INDEX, FOLLOW" />
+
+  <title>Et un navigateur pourri, un ! - Florian Quèze</title>
+
+  <meta name="description" lang="en" content="Je viens, en analysant les logs d&#39;apache de trouver pour la première fois une trace du passage sur le site naturailes.queze.net d&#39;un navigateur incompatible avec le système de" />
+  <meta name="date" scheme="W3CDTF" content="2006-05-23T20:29:27+02:00" />
+
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="next" href="/post/2006/05/24/Google-Summer-of-Code"
+  title="Google Summer of Code" />
+  <link rel="prev" href="/post/2006/04/24/Probl%C3%A8mes-de-connexion-..."
+  title="Problèmes de connexion ..." />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="dc-post">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">Florian Quèze</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+
+  <p id="navlinks">
+  <a href="/post/2006/04/24/Probl%C3%A8mes-de-connexion-..."
+  title="Problèmes de connexion ..." class="prev">&#171; Problèmes de connexion ...</a>
+   <span>-</span> <a href="/post/2006/05/24/Google-Summer-of-Code"
+  title="Google Summer of Code" class="next">Google Summer of Code &#187;</a>
+  </p>
+
+  <div id="p83" class="post">
+    <h2 class="post-title">Et un navigateur pourri, un !</h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, May 23 2006, 20:29
+    
+    - <a href="/post/2006/05/23/Et-un-navigateur-pourri%2C-un-%21">Permalink</a>
+    </p>
+
+    
+
+    <div class="post-content">
+   <p>Je viens, en analysant les logs d'apache de trouver pour la première fois une trace du passage sur le site <a href="http://naturailes.queze.net">naturailes.queze.net</a> d'un navigateur incompatible avec le système de protection d'images utilisé.</p>
+<p>Ce navigateur est sans surprise ... IE&nbsp;! Enfin j'avais fait un gros effort pour obtenir la compatibilité avec IE6, IE5, ... Donc là, il s'agit d'une version exotique d'IE&nbsp;!</p>
+<pre>Mozilla/4.0 (compatible; MSIE 5.22; Mac_PowerPC)</pre>
+<p>Problème constaté&nbsp;: ce navigateur ne charge pas correctement les images de fond (css). J'ai dans la feuille de style par exemple <code>#csa{[...];background-image:url('Imgpm5nem.jpg');}</code>. Et dans le log d'apache, je retrouve, ô surprise, <code>"GET /'Imgpm5nem.jpg' HTTP/1.1" 404</code>.</p>
+<p>Alors là, je me suis dit que peut-être qu'il y avait une erreur dans ma syntaxe et qu'elle était tolérée par d'autre navigateurs. (ma feuille de style étant valide d'après le validateur du W3C, je n'y croyais quand même pas trop <img src="/smileys/clin_d'oeil.png" alt=";-)" />). Je suis donc allé vérifier sur le site du W3C dans la spécification CSS2. La plus part de leurs exemples semblent utiliser des double-quotes et non des simple-quotes, mais l'explication est très claire sur ce point&nbsp;:</p>
+<blockquote><p>The format of a URI value is 'url(' followed by optional whitespace followed by an optional single quote (') or double quote (") character followed by the URI itself, followed by an optional single quote (') or double quote (") character followed by optional whitespace followed by ')'. The two quote characters must be the same.</p></blockquote>
+<p>Ma feuille de style est donc valide, et ce navigateur pourri. Bilan&nbsp;: mes sites sont incompatibles avec IE mac 5.22 <img src="/smileys/sourire2.png" alt="^^" />.</p>
+</div>
+  </div>
+
+  
+
+
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="blog.queze.net" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul><li class="topnav-home"><a href="/">Home</a><span> - </span></li><li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2><ul><li><a href="/category/Mozilla">Mozilla</a></li><li><a href="/category/Voitures-anciennes">Voitures anciennes</a><ul><li><a href="/category/Voitures-anciennes/Ami-6">Ami 6</a></li></ul></li><li><a href="/category/Divers">Divers</a></li></ul></div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    
+  </div> <!-- End #blogextra -->
+</div>
+
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© 2005-2017 Florian Quèze</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>

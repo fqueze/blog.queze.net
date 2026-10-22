@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="INDEX, FOLLOW" />
+
+  <title>What about search hijacking? - Florian Quèze</title>
+
+  <meta name="description" lang="en" content="Some people may have noticed that lately my work has been concentrated on bugs with &#39;hijacking&#39; in the status whiteboard, but we never really took the time to explain what the" />
+  <meta name="date" scheme="W3CDTF" content="2015-11-03T12:00:00+01:00" />
+
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="next" href="/post/2016/02/08/Project-ideas-wanted-for-Summer-of-Code-2016"
+  title="Project ideas wanted for Summer of Code 2016" />
+  <link rel="prev" href="/post/2015/10/17/The-World-s-Biggest-Eye-Contact-Experiment-Lille"
+  title="The World&#39;s Biggest Eye Contact Experiment - Lille" />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="dc-post">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">Florian Quèze</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+
+  <p id="navlinks">
+  <a href="/post/2015/10/17/The-World-s-Biggest-Eye-Contact-Experiment-Lille"
+  title="The World&#39;s Biggest Eye Contact Experiment - Lille" class="prev">&#171; The World's Biggest Eye Contact Experiment - Lille</a>
+   <span>-</span> <a href="/post/2016/02/08/Project-ideas-wanted-for-Summer-of-Code-2016"
+  title="Project ideas wanted for Summer of Code 2016" class="next">Project ideas wanted for Summer of Code 2016 &#187;</a>
+  </p>
+
+  <div id="p137" class="post">
+    <h2 class="post-title">What about search hijacking?</h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, November  3 2015, 12:00
+    - <a href="/category/Mozilla">Mozilla</a>
+    - <a href="/post/2015/11/02/What-about-search-hijacking">Permalink</a>
+    </p>
+
+    
+
+    <div class="post-content"><p>Some people may have noticed that lately my work has been concentrated on bugs with 'hijacking' in the status whiteboard, but we never really took the time to explain what the goals of this work are, or aren't.</p>
+<p>What we call "search hijacking" is when a user's default search engine is changed without the user's intent, typically while the user is installing some other software on his system. Search hijacking is a very common phenomenon, and is causing a severely degraded user experience for the affected users; sometimes leading users to switch to another browser to stop searching with a search engine they never wanted and don't know how to change.</p>
+<p>When the search service (the back-end code handling search engines) was initially created <a title="Bug 317107 - New search service" href="https://bugzilla.mozilla.org/show_bug.cgi?id=317107">about a decade ago</a>, search hijacking wasn't a thing. Things were designed for maximum user customizability. Unfortunately, these days the ease of customization combined with the monetary incentives offered has made search a hijacking target.</p>
+<p>The current situation is untenable for Firefox users, so we had to do something. Deciding what to do wasn't obvious, because the difference between the user customizing something and unwanted software writing things to disk isn't always as clear as we would like it to be.</p>
+<p>Whatever we do, hijackers will be able to change their code to workaround our changes. In some way, this is an arms race. We can make changes every 6 weeks if needed. We have reasons to believe that it takes most hijackers several months to update their hacks and deploy them, as they need to be bundled with other software for downloads. Our first approach to the problem, especially while our resources to tackle this were very limited, was to do tiny changes every once in a while to breaks some hijacks and help our users for a few months. We didn't want to do pointless changes, but we could find a few things that didn't feel right in our code, and fixed them.</p>
+<p>For example, we had some evidence that a significant number of users had modified yahoo.xml files in their application folder. Being able to hijack the default engine by just changing an URL in a plain XML file on the disk was just ridiculous, especially when almost every other non-binary file used by the browser is packed inside the omni.ja file. We fixed this in <a title="Bug 1162569 - default engine files should be in the omni.ja file" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1162569">bug 1162569</a> for Firefox 40. Similarly, it was possible to change the default engine by dropping in the user's profile a file redefining the same engine. There is no way to end up in this situation 'naturally', because we refuse to install duplicate engines. The logical fix was to ensure that engines in the profile can't override built-in engines. We fixed this in <a title="Bug 1109354 - prefer Firefox default engines over profile-installed plugins with the same name" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1109354">bug 1109354</a>, also for Firefox 40. This was also a good opportunity to add lots of tests about how engines are loaded.</p>
+<p>Something seriously limiting our ability to correctly attack the problem was the lack of good data. We found the evidence of modified yahoo.xml files in the wild almost by accident, while looking at incoherent default engine data we received in FHR. In parallel to the fixes mentioned above, we also introduced a better data collection mechanism, with the <a title="Bug 1164159 - Send information about the default search engines through Telemetry" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1164159">addition of a telemetry probe</a> recording details about how the current default engine has been loaded.</p>
+<p>I haven't been able to look at release-user data collected through this new telemetry probe yet (I intend to do so soon!), but a quick analysis of the early data we got from nightly and aurora users revealed that a non-trivial amount of users had no engine at all, resulting in search features being completely broken for them. This situation can happen if the hijackers removed all the other 'competing' engines to ensure they are the only one, and then got removed themselves, eg. due to one of our previous fixes. We addressed this problem in <a title="Bug 438599 - the currentEngine attribute of nsIBrowserSearchService should never be null" href="https://bugzilla.mozilla.org/show_bug.cgi?id=438599">bug 438599</a> for Firefox 43, by unhiding automatically the original default engine when no visible engine is left.</p>
+<p>A major change that is coming soon to Firefox is required <a href="https://wiki.mozilla.org/Add-ons/Extension_Signing">add-on signing</a>. This is a game changer for hijacking, because now anything that lets malware with disk access insert unsigned-code that changes Firefox's behavior is explicitly a bug. This means we are now in a position to close lots of doors that were wide open, to ensure the control is in the hands of our users, not hijackers. There are 2 supported ways to install new engines: either the user does it through the Firefox UI (eg. using OpenSearch discovery on a website), or it's done by a signed add-on. Any other way left to install a search engine and set it as the default is something we need to look into.</p>
+<p>In order to better enforce this, we need to be reasonably confident that the data from the user's profile has actually been written due to intentional user actions. The next step of our hijacking remediation work is to cleanup the way search-related data is stored in user profiles. We used to store 2 JSON files (one cache file dismissed after each update, and one file with metadata), in addition to a plain xml file for each user-installed engine. This made it easy to mess either with the xml files (just dropping in the folder an xml file in the open search format was enough to install an engine) or with the metadata. In <a title="Bug 1203167 - Store user-installed search plugins in a JSON file and stop loading [profile]/searchplugins/*.xml" href="https://bugzilla.mozilla.org/show_bug.cgi?id=1203167">bug 1203167</a> (just landed on nightly), I'm changing the profile storage so that everything is in a single file. The data is stored in a JSON format, but the file is written to disk using OS.File's compression feature, which in addition to reducing the file size on disk will also make the file resistant to dumb search &amp; replace attacks. The important data stored in the file (eg. the name of the user-selected default engine) is protected from tampering using verification hashes. While these hashes are by no way meant to be cryptographically secure, they should be unique to each profile, and so make tampering harder. Changing the storage format was also an opportunity to save slightly more data about how users installed engines. For example, if an engine was installed from OpenSearch discovery, we will remember the hostname of the website from which it was downloaded.</p>
+<p>We are not done. We have a few more doors to close. We also don't expect to ever be completely resistant to hijacking, as an attacker with local admin access can do whatever. We mostly aim to make hijacking hard enough that it will require some (minimal) engineering skills to do it. Dropping a file on disk or doing a search &amp; replace on the default engine's URL shouldn't be enough. It should require running local code. We can’t protect users from all their mistakes, but we can draw a line between malware-behavior and user-customization that's clear enough for antivirus vendors to enforce it for their users.</p>
+<p>We are still working on preventative measures. But a few releases from now, we can expect to start offering curative measures. With Firefox 45 we'll start recording information about engines origin. At some point (currently targeting Firefox 46), we could offer users who have non-default engines of unknown origin an opportunity to check their search settings and revert to the original default if they don't remember changing their default engine themselves. UX is currently thinking this through.</p></div>
+  </div>
+
+  
+  <div id="comments">
+    <h3>Comments</h3>
+  <dl>
+  
+    <dt id="c88523" class=" odd first"><a
+    href="#c88523" class="comment-number">1.</a>
+    On Tuesday, November  3 2015, 14:45
+    by Marco</dt>
+
+    <dd class=" odd first">
+    <p>Are you doing something similar for about:home hijacks?<br />
+They're pretty common as well.</p>
+
+
+<p>Have you thought about storing the selected search engine in Firefox Sync (if the user is registered) and warn the user when the search engine selected in the browser is not the same stored in Firefox Sync?</p>
+    </dd>
+  
+    <dt id="c88524" class="  "><a
+    href="#c88524" class="comment-number">2.</a>
+    On Tuesday, November  3 2015, 14:55
+    by Florian</dt>
+
+    <dd class="  ">
+    <p>I'm currently focused on the search service, so about:home is out of the scope of what I'm doing now. But you are right that it needs attention too. We did something for the new tab page in bug 1118285.</p>
+
+
+<p>I haven't thought about using Firefox Sync for hijacking detection. I don't have data about this, but I would expect most of our hijacked users to not use Sync.</p>
+    </dd>
+  
+    <dt id="c107940" class=" odd "><a
+    href="#c107940" class="comment-number">3.</a>
+    On Monday, May  9 2016, 17:06
+    by bleh</dt>
+
+    <dd class=" odd ">
+    <p>Now, there is no easy way to look at, let alone edit the code of any of the installed search engines.<br />
+Something I would very much like to do.<br />
+Previously, if I wanted some different parameters, language or suggestions provider in a searchplugin, it was a quick text edit, now it is writing the complete thing from scratch and installing via some arcane JS-function after flipping a dev pref. Really?<br />
+If a search plugin had user-ids for tracking, ref-links etc. in it, how would I even know now?<br />
+This is just terrible design.</p>
+
+
+<p>You couldn't find an equally 'secure' way to store the last known search config, show the differences and ask the user to approve/undo any changes? Even Internet Explorer can do this, IE!<br />
+Seriously, look at what IE does, see the foolishness of your ways and adopt their approach.</p>
+
+
+<p>Btw: The only one hijacking my searches in all the years of using FF was *drumroll* Mozilla, by overriding my custom stuff with your defaults, ironic that you would now prevent me from easily undoing that?</p>
+    </dd>
+  
+  </dl>
+  </div>
+  
+
+
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="blog.queze.net" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul><li class="topnav-home"><a href="/">Home</a><span> - </span></li><li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2><ul><li class="category-current"><a href="/category/Mozilla">Mozilla</a></li><li><a href="/category/Voitures-anciennes">Voitures anciennes</a><ul><li><a href="/category/Voitures-anciennes/Ami-6">Ami 6</a></li></ul></li><li><a href="/category/Divers">Divers</a></li></ul></div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    
+  </div> <!-- End #blogextra -->
+</div>
+
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© 2005-2017 Florian Quèze</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>

@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet title="XSL formatting" type="text/xsl" href="/feed/rss2.xsl" ?>
+<rss version="2.0"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Florian Quèze</title>
+  <link>http://blog.queze.net/</link>
+  <atom:link href="http://blog.queze.net/feed/rss2" rel="self" type="application/rss+xml"/>
+  <description>Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ...</description>
+  <language>en</language>
+  <pubDate>Sun, 22 Mar 2026 03:43:22 +0100</pubDate>
+  <copyright></copyright>
+  <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+
+  <item>
+    <title>Catching flickering regressions</title>
+    <link>http://blog.queze.net/post/2017/12/05/Catching-flickering-regressions</link>
+    <guid isPermaLink="false">urn:md5:7d0dae7c1e8cd58ce5d996e477e35506</guid>
+    <pubDate>Tue, 05 Dec 2017 20:47:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>performance</category>
+    <description>    &lt;p&gt;For Firefox 57, as part of the Photon Performance project, one of the
+things we worked on was dramatically reducing flickering in the main
+browser window. We focused especially on what happens when opening the
+first browser window during startup, and when opening new browser
+windows.&lt;br /&gt;&lt;br /&gt;To identify bugs, we &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1372518#c0&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1372518%23c0&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNGmtWyKTq358nomUf_azbiQZPlKng&quot;&gt;looked frame by frame at video recordings&lt;/a&gt;.
+This was good enough to file bugs for an initial exploration, but was
+time consuming, and won't help us to keep these interactions flicker
+free going forward.&lt;br /&gt;&lt;br /&gt;I'm happy to announce that these two
+interactions are now covered by automated flickering tests that will
+catch any regression there:&lt;br /&gt;&lt;a href=&quot;https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNEVtLKbH5HRh1TQq3LB7ev-6Vcx8Q&quot;&gt;https://searchfox.org/mozilla-&lt;wbr&gt;central/source/browser/base/co&lt;wbr&gt;ntent/test/performance/browser&lt;wbr&gt;_startup_flicker.js&lt;/a&gt;&lt;br /&gt;&lt;a href=&quot;https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNGqEpUmnoTJ-gr-8V1DbkCqhwIqzQ&quot;&gt;https://searchfox.org/mozilla-&lt;wbr&gt;central/source/browser/base/co&lt;wbr&gt;ntent/test/performance/browser&lt;wbr&gt;_windowopen_flicker.js&lt;/a&gt;&lt;br /&gt;&lt;br /&gt;These tests currently contain whitelists of known bugs (blocking &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1421456&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1421456&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNEogQEuEbaHV7CgJU5AiOeB2146zw&quot;&gt;bug 1421456&lt;/a&gt;).&lt;/p&gt;
+Here is how these tests work:&lt;br /&gt;&lt;ul&gt;&lt;li&gt;as soon as the window we care about is created, we add a MozAfterPaint event listener to it.&lt;/li&gt;
+&lt;li&gt;for each received MozAfterPaint event, we capture a screenshot of the window using &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNF4_r45yxxCGeu1Bq4Cevns0REsGg&quot;&gt;CanvasRenderingContext2D.drawW&lt;wbr&gt;indow()&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;remove the event listener after the window is done loading and after several Services.tm.idleDispatchToMain&lt;wbr&gt;Thread callbacks to ensure that the window has settled.&lt;/li&gt;
+&lt;li&gt;compare the pixel data of each of the captured frames to identify areas that have changed.&lt;/li&gt;
+&lt;li&gt;for changed areas, see if they are whitelisted, if not make the test
+fail and dump base64 encoded data urls of the before/after screenshots,
+so that the test failure can be visually debugged.&lt;/li&gt;
+&lt;/ul&gt;&lt;div dir=&quot;ltr&quot;&gt;We
+currently cover only the startup and window opening cases, but I expect
+us to add similar tests to more areas in the future. Each time we spend
+effort reducing flickering in some area of our UI, we should add tests
+for it to prevent regression.&lt;/div&gt;</description>
+  </item>
+
+  <item>
+    <title>Thunderbird is the next version of Instantbird</title>
+    <link>http://blog.queze.net/post/2017/10/18/Thunderbird-is-the-next-version-of-Instantbird</link>
+    <guid isPermaLink="false">urn:md5:6350abb2580f4384007114bb5ee339e4</guid>
+    <pubDate>Wed, 18 Oct 2017 23:55:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;div id=&quot;magicdomid1338&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;Ten years ago, on October 18th 2007, I &lt;a href=&quot;http://blog.queze.net/post/2007/10/18/Instantbird-0.1&quot;&gt;released Instantbird 0.1&lt;/a&gt;&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt; I was soon joined by a team of enthusiastic hackers, and &lt;/span&gt;&lt;span class=&quot;&quot;&gt;I hoped we could make a better IM client that would replace the&lt;/span&gt;&lt;span class=&quot;&quot;&gt; painfully broken ones that were dominant at the time.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;ace-line&quot;&gt;&lt;span class=&quot;&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div id=&quot;magicdomid1367&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;The Internet has changed a lot since then.&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt; Messaging has moved significantly toward mobile apps.&amp;nbsp;&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;&quot;&gt;he clients we were &lt;/span&gt;&lt;span class=&quot;&quot;&gt;competing with mostly died themselves.&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt; Even the services we were connecting to are closing down (&lt;/span&gt;&lt;a href=&quot;https://help.aol.com/articles/aim-discontinued&quot; title=&quot;AIM will be discontinued on December 15, 2017&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;AOL&lt;/span&gt;&lt;/a&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;, &lt;a href=&quot;http://ismsndeadyet.com/&quot; title=&quot;Is MSN dead yet?&quot;&gt;MSN&lt;/a&gt;, ...)&lt;/span&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt;, or moved away from standard protocols (&lt;/span&gt;&lt;a href=&quot;https://developers.facebook.com/docs/chat/&quot;&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt;Facebook&lt;/span&gt;&lt;/a&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z url&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt;.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div id=&quot;magicdomid1362&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;While we made a&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt; pretty good product, we never managed to attract a critical mass of&lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt; users, and we lost half of them when &lt;a href=&quot;https://developers.facebook.com/docs/chat/&quot; title=&quot;After April 30th, 2015 apps will no longer be able to access the service or API.&quot;&gt;the Facebook XMPP gateway was closed&lt;/a&gt;. Instantbird still has some uses (especially as an IRC client), but its user interface has aged significantly.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div id=&quot;magicdomid1485&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;&quot;&gt;I don't think maintaining our infrastructure to support only a few&lt;/span&gt;&lt;span class=&quot;&quot;&gt; thousand users is a good use of my time, and I've lost motivation to&lt;/span&gt;&lt;span class=&quot;&quot;&gt; do it. &lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;While Instantbird regularly received code contributions from several people and had a nice and friendly community, nobody stood up to replace me and take care of our build infrastructure. This means we haven't been able to produce nightly builds for the last couple months, and are extremely unlikely to be able to ship a new release any time soon. It's time to announce that we are stopping development of Instantbird as a standalone product.&lt;/span&gt;&lt;/div&gt;&lt;div id=&quot;magicdomid1646&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;The code base isn't dying though! A large part of it is shared with Thunderbird (since &lt;a href=&quot;https://blog.mozilla.org/thunderbird/2012/08/new-thunderbird-chat-do-not-track-and-much-more/&quot; title=&quot;The Mozilla Thunderbird Blog: New Thunderbird: Chat, Do Not Track and much more…&quot;&gt;it received chat support in 2012&lt;/a&gt;). Thunderbird is actively maintained, and has lots of users.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;&lt;br /&gt;&lt;/span&gt;&lt;/div&gt;&lt;div id=&quot;magicdomid1713&quot; class=&quot;ace-line&quot;&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;Instead of working on Instantbird, we'll refocus our energy on &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1409891&quot; title=&quot;Bug 1409891 - [meta] Improve the experience for users coming from Instantbird&quot;&gt;improving the chat features&lt;/a&gt; in Thunderbird, so that it becomes friendly for users who loved Instantbird and will seek a replacement.&lt;/span&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt; This should allow us to focus on features and not worry about infrastructure that was sapping our energy and time. Thunderbird &lt;/span&gt;&lt;span class=&quot;author-a-z76zce2z76znz84zz85zz85zz66zz69zmyc3i&quot;&gt;is&lt;/span&gt;&lt;span class=&quot;author-a-z66zz85ztez68zbz67z7z75zz84z6z74zkz65zz87zz77z&quot;&gt; the spiritual successor to Instantbird!&lt;/span&gt;&lt;/div&gt;</description>
+  </item>
+
+  <item>
+    <title>Project ideas wanted for Summer of Code 2016</title>
+    <link>http://blog.queze.net/post/2016/02/08/Project-ideas-wanted-for-Summer-of-Code-2016</link>
+    <guid isPermaLink="false">urn:md5:9b1697a461c2afbc19c5dc5dfcab5423</guid>
+    <pubDate>Mon, 08 Feb 2016 20:04:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;Google is running &lt;a href=&quot;https://developers.google.com/open-source/gsoc/&quot;&gt;&lt;span class=&quot;il&quot;&gt;Summer&lt;/span&gt; &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;il&quot;&gt;Code&lt;/span&gt;&lt;/a&gt; again in 2016. Mozilla has had the pleasure &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; participating many years so far, and even though we weren't selected last year, we are hoping to participate again this year. In the next few weeks, we need to prepare a list &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; suitable projects to support our application.&lt;br /&gt;
+&lt;br /&gt;
+Can you think &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; a 3-month coding project you would love to guide a student through? This is your chance to get a student focusing on it for 3 months! &lt;span class=&quot;il&quot;&gt;Summer&lt;/span&gt; &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;il&quot;&gt;Code&lt;/span&gt; is a great opportunity to introduce new people to your team and have them work on projects you care about but that aren't on the critical path to shipping your next release.&lt;br /&gt;
+&lt;br /&gt;
+Here are the conditions for the projects:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;
+completing the project should take roughly 3 months &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; effort for a student;&lt;/li&gt;
+&lt;li&gt;any part &lt;span class=&quot;il&quot;&gt;of&lt;/span&gt; the Mozilla project (Firefox, Firefox OS, Thunderbird, Instantbird, SeaMonkey, Bugzilla, L10n, NSS, IT, and many more) can submit ideas, as long as they require coding work;&lt;/li&gt;
+&lt;li&gt;there is a clearly identified mentor who can guide the student through the project.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;
+If you have an idea, please put it on the &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode16:Brainstorming&quot;&gt;Brainstorming page&lt;/a&gt;, which is our idea development scratchpad. Please follow the instructions at the top.&lt;br /&gt;
+&lt;br /&gt;
+The deadline to submit project ideas and help us be selected by Google is February 19th.&lt;br /&gt;
+&lt;br /&gt;
+Note for students: the student application period starts on March 14th, but the sooner you start discussing project ideas with potential mentors, the better.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>What about search hijacking?</title>
+    <link>http://blog.queze.net/post/2015/11/02/What-about-search-hijacking</link>
+    <guid isPermaLink="false">urn:md5:8d0fe7c805adec64dfea674ed0f159e8</guid>
+    <pubDate>Tue, 03 Nov 2015 12:00:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;Some people may have noticed that lately my work has been concentrated on bugs with 'hijacking' in the status whiteboard, but we never really took the time to explain what the goals of this work are, or aren't.&lt;/p&gt;
+&lt;p&gt;What we call &quot;search hijacking&quot; is when a user's default search engine is changed without the user's intent, typically while the user is installing some other software on his system. Search hijacking is a very common phenomenon, and is causing a severely degraded user experience for the affected users; sometimes leading users to switch to another browser to stop searching with a search engine they never wanted and don't know how to change.&lt;/p&gt;
+&lt;p&gt;When the search service (the back-end code handling search engines) was initially created &lt;a title=&quot;Bug 317107 - New search service&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=317107&quot;&gt;about a decade ago&lt;/a&gt;, search hijacking wasn't a thing. Things were designed for maximum user customizability. Unfortunately, these days the ease of customization combined with the monetary incentives offered has made search a hijacking target.&lt;/p&gt;
+&lt;p&gt;The current situation is untenable for Firefox users, so we had to do something. Deciding what to do wasn't obvious, because the difference between the user customizing something and unwanted software writing things to disk isn't always as clear as we would like it to be.&lt;/p&gt;
+&lt;p&gt;Whatever we do, hijackers will be able to change their code to workaround our changes. In some way, this is an arms race. We can make changes every 6 weeks if needed. We have reasons to believe that it takes most hijackers several months to update their hacks and deploy them, as they need to be bundled with other software for downloads. Our first approach to the problem, especially while our resources to tackle this were very limited, was to do tiny changes every once in a while to breaks some hijacks and help our users for a few months. We didn't want to do pointless changes, but we could find a few things that didn't feel right in our code, and fixed them.&lt;/p&gt;
+&lt;p&gt;For example, we had some evidence that a significant number of users had modified yahoo.xml files in their application folder. Being able to hijack the default engine by just changing an URL in a plain XML file on the disk was just ridiculous, especially when almost every other non-binary file used by the browser is packed inside the omni.ja file. We fixed this in &lt;a title=&quot;Bug 1162569 - default engine files should be in the omni.ja file&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1162569&quot;&gt;bug 1162569&lt;/a&gt; for Firefox 40. Similarly, it was possible to change the default engine by dropping in the user's profile a file redefining the same engine. There is no way to end up in this situation 'naturally', because we refuse to install duplicate engines. The logical fix was to ensure that engines in the profile can't override built-in engines. We fixed this in &lt;a title=&quot;Bug 1109354 - prefer Firefox default engines over profile-installed plugins with the same name&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1109354&quot;&gt;bug 1109354&lt;/a&gt;, also for Firefox 40. This was also a good opportunity to add lots of tests about how engines are loaded.&lt;/p&gt;
+&lt;p&gt;Something seriously limiting our ability to correctly attack the problem was the lack of good data. We found the evidence of modified yahoo.xml files in the wild almost by accident, while looking at incoherent default engine data we received in FHR. In parallel to the fixes mentioned above, we also introduced a better data collection mechanism, with the &lt;a title=&quot;Bug 1164159 - Send information about the default search engines through Telemetry&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1164159&quot;&gt;addition of a telemetry probe&lt;/a&gt; recording details about how the current default engine has been loaded.&lt;/p&gt;
+&lt;p&gt;I haven't been able to look at release-user data collected through this new telemetry probe yet (I intend to do so soon!), but a quick analysis of the early data we got from nightly and aurora users revealed that a non-trivial amount of users had no engine at all, resulting in search features being completely broken for them. This situation can happen if the hijackers removed all the other 'competing' engines to ensure they are the only one, and then got removed themselves, eg. due to one of our previous fixes. We addressed this problem in &lt;a title=&quot;Bug 438599 - the currentEngine attribute of nsIBrowserSearchService should never be null&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=438599&quot;&gt;bug 438599&lt;/a&gt; for Firefox 43, by unhiding automatically the original default engine when no visible engine is left.&lt;/p&gt;
+&lt;p&gt;A major change that is coming soon to Firefox is required &lt;a href=&quot;https://wiki.mozilla.org/Add-ons/Extension_Signing&quot;&gt;add-on signing&lt;/a&gt;. This is a game changer for hijacking, because now anything that lets malware with disk access insert unsigned-code that changes Firefox's behavior is explicitly a bug. This means we are now in a position to close lots of doors that were wide open, to ensure the control is in the hands of our users, not hijackers. There are 2 supported ways to install new engines: either the user does it through the Firefox UI (eg. using OpenSearch discovery on a website), or it's done by a signed add-on. Any other way left to install a search engine and set it as the default is something we need to look into.&lt;/p&gt;
+&lt;p&gt;In order to better enforce this, we need to be reasonably confident that the data from the user's profile has actually been written due to intentional user actions. The next step of our hijacking remediation work is to cleanup the way search-related data is stored in user profiles. We used to store 2 JSON files (one cache file dismissed after each update, and one file with metadata), in addition to a plain xml file for each user-installed engine. This made it easy to mess either with the xml files (just dropping in the folder an xml file in the open search format was enough to install an engine) or with the metadata. In &lt;a title=&quot;Bug 1203167 - Store user-installed search plugins in a JSON file and stop loading [profile]/searchplugins/*.xml&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1203167&quot;&gt;bug 1203167&lt;/a&gt; (just landed on nightly), I'm changing the profile storage so that everything is in a single file. The data is stored in a JSON format, but the file is written to disk using OS.File's compression feature, which in addition to reducing the file size on disk will also make the file resistant to dumb search &amp;amp; replace attacks. The important data stored in the file (eg. the name of the user-selected default engine) is protected from tampering using verification hashes. While these hashes are by no way meant to be cryptographically secure, they should be unique to each profile, and so make tampering harder. Changing the storage format was also an opportunity to save slightly more data about how users installed engines. For example, if an engine was installed from OpenSearch discovery, we will remember the hostname of the website from which it was downloaded.&lt;/p&gt;
+&lt;p&gt;We are not done. We have a few more doors to close. We also don't expect to ever be completely resistant to hijacking, as an attacker with local admin access can do whatever. We mostly aim to make hijacking hard enough that it will require some (minimal) engineering skills to do it. Dropping a file on disk or doing a search &amp;amp; replace on the default engine's URL shouldn't be enough. It should require running local code. We can’t protect users from all their mistakes, but we can draw a line between malware-behavior and user-customization that's clear enough for antivirus vendors to enforce it for their users.&lt;/p&gt;
+&lt;p&gt;We are still working on preventative measures. But a few releases from now, we can expect to start offering curative measures. With Firefox 45 we'll start recording information about engines origin. At some point (currently targeting Firefox 46), we could offer users who have non-default engines of unknown origin an opportunity to check their search settings and revert to the original default if they don't remember changing their default engine themselves. UX is currently thinking this through.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>The World's Biggest Eye Contact Experiment - Lille</title>
+    <link>http://blog.queze.net/post/2015/10/17/The-World-s-Biggest-Eye-Contact-Experiment-Lille</link>
+    <guid isPermaLink="false">urn:md5:942ec4b668f1234846c81b0b95f19756</guid>
+    <pubDate>Sat, 17 Oct 2015 13:21:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    
+    <description>    &lt;p&gt;Hier soir j'ai passé la soirée à l'&lt;a href=&quot;https://www.facebook.com/events/1828196594073461/&quot;&gt;édition de Lille&lt;/a&gt; du &lt;a href=&quot;http://www.eyecontactexperiment.com/&quot;&gt;World's Biggest Eye Contact Experiment.&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Malgré la pluie, je suis resté toute la soirée. De 17h30 à plus de 20h30. J'ai eu de très nombreux contacts visuels avec de nombreux-ses inconnu-e-s. Je n'ai pas vu le temps passer, et ai rarement attendu plus de 2 ou 3 minutes entre 2 personnes s'asseyant en face de moi. Les gens sont incroyablement beaux quand on prend le temps de les regarder.&lt;br /&gt;Chaque contact visuel a été différent. Chaque regard exprime quelque chose d'unique. Ce qui passe dans un regard est souvent difficile à exprimer avec des mots. Parfois le contact est très intense sans qu'il y ait de mots échangés entre nous sauf &quot;bonjour&quot; et &quot;merci&quot;. Parfois il se termine par une petite discussion. Quelques exemples ont été plus marquants que d'autres.&lt;br /&gt;En voici un :&lt;br /&gt;Je m'installe en face de J., qui demande aussitôt à toucher mes genoux ; elle dit qu'elle est plus à l'aise avec un contact tactile en plus du contact visuel. J'accepte, puis change d'avis et décide de lui prendre les mains au lieu de la laisser les poser sur mes genoux. Nous nous regardons. Elle semble apprécier, même si quelque chose semble la perturber un peu. Elle me dit :&lt;br /&gt;- ton regard est bizarre. Il y a quelque chose d'inhabituel.&lt;br /&gt;- ah ?&lt;br /&gt;- oui, j'arrive pas à trouver quoi.&lt;br /&gt;- si tu trouves tu me diras.&lt;br /&gt;Le silence revient. Nous restons perdus dans le regard l'un de l'autre. Soudain son visage s'illumine : elle a trouvé. Elle dit &quot;Ton regard est doux.&quot; et quelques secondes plus tard, elle ajoute &quot;il est vrai.&quot; Notre échange visuel se termine bientôt lorsqu'elle dit &quot;Je peux avoir un câlin ?&quot;. On se lève. On s'enlace. C'est le câlin le plus tendre que j'ai reçu (et donné ?) depuis très longtemps.&lt;/p&gt;
+&lt;p&gt;Merci à J., qui se reconnaîtra ou pas.&lt;/p&gt;
+&lt;p&gt;Merci à tous les autres, nombreux. Merci aux organisateurs.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Mozilla not accepted for Google Summer of Code 2015</title>
+    <link>http://blog.queze.net/post/2015/03/03/Mozilla-not-accepted-for-Google-Summer-of-Code-2015</link>
+    <guid isPermaLink="false">urn:md5:94055dd39fc4e453b226038dd4457d4e</guid>
+    <pubDate>Tue, 03 Mar 2015 10:56:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    As you may have already seen, Mozilla is not in the list of &lt;a href=&quot;https://www.google-melange.com/gsoc/org/list/public/google/gsoc2015&quot;&gt;organizations accepted for Google Summer of Code 2015&lt;/a&gt;.&lt;br /&gt;&lt;br /&gt;People who have observed the list carefully may have noticed that there are fewer accepted organizations this year: 137 (down from &lt;a href=&quot;https://www.google-melange.com/gsoc/org/list/public/google/gsoc2014&quot;&gt;190 in 2014&lt;/a&gt; and &lt;a href=&quot;https://www.google-melange.com/gsoc/org/list/public/google/gsoc2013&quot;&gt;177 in 2013&lt;/a&gt;). Other organizations that have participated successfully several times are also not in the 2015 list (eg. Linux Foundation, Tor, ...).&lt;br /&gt;&lt;br /&gt;After a quick email exchange with Google last night, here is the additional information I have:&lt;br /&gt;&lt;ul&gt;&lt;li&gt;not accepting Mozilla was a difficult decision for them. It is not the result of a mistake on our part or an accident on their side.&lt;/li&gt;
+&lt;li&gt;there's an assumption that not participating for one year would not be as damaging for us as it would be for some other organizations, due to us having already participated many times.&lt;/li&gt;
+&lt;li&gt;this event doesn't affect negatively our chances of being selected next year, and we are encouraged to apply again.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;br /&gt;This news has been a surprise for me. I am disappointed, and I'm sure lots of people reading this are disappointed too. I would like to thank all the people who considered participating this year with Mozilla, and especially all the Mozillians who volunteered to mentor and contributed great project ideas. I would also like to remind students that while Summer of Code is a great opportunity to contribute to Mozilla, it's &lt;a href=&quot;http://www.whatcanidoformozilla.org/#!/progornoprog/proglang&quot;&gt;not the only one&lt;/a&gt;. Feel free to contact mentors if you would like to work on some of the suggested ideas anyway.&lt;br /&gt;&lt;br /&gt;Let's try again next year!</description>
+  </item>
+
+  <item>
+    <title>FOSDEM 2015 slides - What's new in Firefox?</title>
+    <link>http://blog.queze.net/post/2015/02/11/FOSDEM-2015-slides-What-s-new-in-Firefox</link>
+    <guid isPermaLink="false">urn:md5:3c26f6ab09b46e1997f589eb70dcc3ef</guid>
+    <pubDate>Wed, 11 Feb 2015 15:48:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;This year at FOSDEM I talked about Firefox. I summarized the major changes that have been made to Firefox in 2014, and what our plans are for 2015.&lt;/p&gt;
+&lt;p&gt;Here are the slides of my &lt;a href=&quot;https://fosdem.org/2015/schedule/event/whats_new_in_firefox/&quot;&gt;FOSDEM presentation&lt;/a&gt;:&lt;br /&gt;
+&lt;a title=&quot;What's new in Firefox? - FOSDEM2015 slides&quot; href=&quot;https://people.mozilla.org/~fqueze2/slides/fosdem2015/&quot;&gt;&lt;img alt=&quot;What's new in Firefox? What happened in 2014? What's the plan for 2015? FOSDEM 2015, by Florian Quèze&quot; src=&quot;http://blog.queze.net/public/fosdem2015-cover-slide.png&quot; /&gt;&lt;/a&gt;&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Project ideas wanted for Summer of Code 2015</title>
+    <link>http://blog.queze.net/post/2015/01/22/Project-ideas-wanted-for-Summer-of-Code-2015</link>
+    <guid isPermaLink="false">urn:md5:89db33e9abf4535471926eca140fda5d</guid>
+    <pubDate>Thu, 22 Jan 2015 20:52:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;div class=&quot;post-content&quot;&gt;&lt;p&gt;Google is &lt;a title=&quot; Google Summer of Code 2015 and Google Code-in 2014 are on!&quot; href=&quot;http://google-opensource.blogspot.fr/2014/10/google-summer-of-code-2015-and-google.html&quot;&gt;running Summer of Code again in 2015&lt;/a&gt;.
+Mozilla has had the pleasure of participating every year so far, and we
+are hoping to participate &lt;a href=&quot;https://wiki.mozilla.org/SummerOfCode&quot;&gt;again&lt;/a&gt; this year. In the next few weeks, we need
+to prepare a list of suitable projects to support our application.&lt;br /&gt;
+&lt;br /&gt;&lt;strong&gt;&lt;strong&gt;Can you think of a 3-month coding project you would love to guide a student through?&lt;/strong&gt;&lt;/strong&gt; This is your chance to get a student
+focusing on it for 3 months! Summer of Code is a great opportunity to introduce new people to
+your team and have them work on
+projects you care about but that aren't on the critical path to shipping your next release.&lt;br /&gt;&lt;br /&gt;Here are the conditions for the projects:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;completing the project should take roughly 3 months of effort for a student;&lt;/li&gt;
+&lt;li&gt;any part of the Mozilla project (Firefox, Firefox OS, Thunderbird,
+Instantbird, SeaMonkey, Bugzilla, L10n, NSS, IT, and many more) can
+submit ideas, as long as they require coding work;&lt;/li&gt;
+&lt;li&gt;
+there is a clearly identified mentor who can guide the student through the project.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;br /&gt;If
+you have an idea, please put it on the &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode15:Brainstorming&quot;&gt;Brainstorming page&lt;/a&gt;, which is our
+idea development scratchpad. Please read the instructions at the top –
+following them vastly increases chances of your idea getting added
+to the &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode15&quot;&gt;formal Ideas page&lt;/a&gt;.&lt;br /&gt;
+&lt;br /&gt;The deadline to submit project ideas and help us be selected by Google is February 20th.&lt;/p&gt;
+&lt;p&gt;Note for students: the student application period starts on March 16th, but the sooner you start discussing project ideas with potential mentors, the better.&lt;br /&gt;&lt;br /&gt;Please feel free to discuss with me any question you may have related to Mozilla's participation in Summer of Code. Generic Summer of Code questions are likely already answered in the &lt;a title=&quot; Google Summer of Code 2015 Frequently Asked Questions &quot; href=&quot;https://www.google-melange.com/gsoc/document/show/gsoc_program/google/gsoc2015/help_page&quot;&gt;FAQ&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;</description>
+  </item>
+
+  <item>
+    <title>Firefox is awesome</title>
+    <link>http://blog.queze.net/post/2014/07/27/Firefox-is-awesome</link>
+    <guid isPermaLink="false">urn:md5:533d3601d2c15f2311e17c0ac291b418</guid>
+    <pubDate>Sun, 27 Jul 2014 22:15:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;&quot;&lt;em&gt;Hey,
+you know what? Firefox is awesome!&lt;/em&gt;&quot; someone exclaimed at the other end
+of the &lt;a title=&quot;La Coroutine&quot; href=&quot;http://www.lacoroutine.org/&quot;&gt;coworking space&lt;/a&gt; a few weeks ago. This piqued my curiosity, and I
+moved closer to see what she was so excited about.&lt;/p&gt;
+&lt;p&gt;When
+I saw the feature she was delighted of finding, it reminded me a
+similar situation several years ago. In high school, I was trying to
+convince a friend to switch from IE to Mozilla. The arguments about
+respecting web standards didn't convince him. He tried Mozilla anyway to
+please me, and found one feature that excited him.&lt;br /&gt;
+He
+had been trying to save some images from webpages, and for some reason
+it was difficult to do (possibly because of context menu hijacking,
+which was common at the time, or maybe because the images were displayed
+as a background, …). He had even written some Visual Basic code to
+parse the saved HTML source code and find the image urls, and then
+downloaded them, but the results weren't entirely satisfying.&lt;br /&gt;
+Now
+with Mozilla, he could just right click, select &quot;View Page Info&quot;, click
+on the &quot;Media&quot; tab, and find a list of all the images of the page. I
+remember how excited he looked for one second, until he clicked a
+background image in the list and the preview stayed blank; he then
+clicked the &quot;Save as&quot; button anyway and… nothing happened. Turns out
+that &quot;Save as&quot; button was just producing an error in the Error Console.
+He then looked at me, very disappointed, and said that my Mozilla isn't
+ready yet.&lt;br /&gt;
+After that disappointment, I didn't insist much on him using Mozilla instead of IE (I think he did switch anyway a few weeks or months later).&lt;/p&gt;
+&lt;p&gt;A few months later, as I had time during summer vacations, I tried to
+create an add-on for the last thing I could do with IE but not Firefox:
+list the hostnames that the browser connects to when loading a page (the
+add-on, &lt;a href=&quot;https://addons.mozilla.org/en-US/firefox/addon/view-dependencies/&quot;&gt;View Dependencies&lt;/a&gt;, is on AMO). I used this to maintain a &lt;a href=&quot;http://en.wikipedia.org/wiki/Hosts_%28file%29&quot;&gt;hosts file&lt;/a&gt; that was blocking ads on the network's gateway.&lt;br /&gt;
+Working
+on this add-on project caused me to look at the existing Page Info code
+to find ideas about how to look through the resources loaded by the
+page. While doing this, I stumbled on the problem that was causing
+background image previews to not be displayed. Exactly 10 years ago, I
+created a patch, created a bugzilla account (I had been lurking on
+bugzilla for a while already, but without creating an account as I
+didn't feel I should have one until I had something to contribute), and
+&lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=229441#c12&quot;&gt;attached the patch&lt;/a&gt; to the existing &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=229441&quot;&gt;bug&lt;/a&gt; about this background preview issue.&lt;br /&gt;
+Two days later, the patch was reviewed (thanks db48x!), I addressed the
+review comment, attached a new patch, and it was checked-in.&lt;br /&gt;
+I remember how excited I was to verify the next day that the bug was gone
+in the next nightly, and how I checked that the code in the new nightly
+was actually using my patch.&lt;/p&gt;
+&lt;p&gt;A couple months later, I &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=239472&quot;&gt;fixed the &quot;Save as&quot; button&lt;/a&gt; too in time for Firefox 1.0.&lt;/p&gt;
+&lt;p&gt;Back to 2014. The reason why someone in my coworking space was finding
+Firefox so awesome is that &quot;&lt;em&gt;You can click &quot;View Page Info&quot;, and then
+view all the images of the page and save them.&lt;/em&gt;&quot; Wow. I hadn't heard
+anybody talking to me about Page Info in years. I did use it a lot
+several years ago, but don't use it that much these days. I do agree
+with her that &lt;strong&gt;Firefox is awesome&lt;/strong&gt;, not really because it can save images
+(although that's a great feature other browsers don't have), but &lt;strong&gt;because
+anybody can make it better&lt;/strong&gt; for his/her own use, and by doing so making
+it awesome &lt;strong&gt;for millions of other people&lt;/strong&gt; now but also in the future. Like
+I did, ten years ago.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Converting old Mac minis into CentOS Instantbird build slaves</title>
+    <link>http://blog.queze.net/post/2014/07/25/Converting-old-Mac-minis-into-CentOS-Instantbird-build-slaves</link>
+    <guid isPermaLink="false">urn:md5:2db95fe73b4c893332b305ae8950eaa8</guid>
+    <pubDate>Fri, 25 Jul 2014 23:24:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;A while ago, I received a few &lt;a href=&quot;http://armenzg.blogspot.de/2014/05/do-you-need-used-mac-mini-for-your.html&quot;&gt;retired Mozilla minis&lt;/a&gt;. Today 2 of them started their new life as CentOS6 build slaves for Instantbird, which means &lt;a href=&quot;http://blog.instantbird.org/2014/07/linux-nightly-builds-back/&quot;&gt;we now have Linux nightlies again&lt;/a&gt;! Our previous Linux build slave, running CentOS5, was no longer able to build nightlies based on the current mozilla-central code, and this is the reason why we haven't had Linux nightlies since March. We know it's been a long wait, but to help our dear Linux testers forgive us, we started offering 64bit nightly builds!&lt;/p&gt;
+&lt;p&gt;For the curious, and for future reference, here are the steps I followed to install these two new build slaves:&lt;/p&gt;
+&lt;h2&gt;Partition table&lt;/h2&gt;
+&lt;p&gt;The Mac minis came with a GPT partition table and an hfs+ partition that we don't want. While the CentOS installer was able to detect them, the grub it installed there didn't work. The solution was to convert the GPT partition table to the MBR older format. To do this, boot into a modern linux distribution (I used an Ubuntu 13.10 live dvd that I had around), install &lt;code&gt;gdisk&lt;/code&gt; (&lt;code&gt;sudo apt-get update &amp;amp;&amp;amp; sudo apt-get gdisk&lt;/code&gt;) and use it to edit the disk's partition table:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;sudo gdisk /dev/sda&lt;/code&gt;&lt;br /&gt;Press '&lt;code&gt;r&lt;/code&gt;' to start recovery/transformation, '&lt;code&gt;g&lt;/code&gt;' to convert from GPT to MBR, '&lt;code&gt;p&lt;/code&gt;' to see the resulting partition table, and finally '&lt;code&gt;w&lt;/code&gt;' to write the changes to disk (instructions initially from &lt;a href=&quot;http://www.firewing1.com/blog/2012/03/05/how-convert-gpt-disk-layout-ms-dosmbr-layout-without-data-loss-and-gigabyte-hybrid&quot;&gt;here&lt;/a&gt;).&lt;br /&gt;Exit gdisk.&lt;br /&gt;Now you can check the current partition table using gparted. At this point I deleted the hfs+ partition.&lt;/p&gt;
+
+&lt;h2&gt;Installing CentOS&lt;/h2&gt;
+&lt;p&gt;The version of CentOS needed to use the current Mozilla build tools is CentOS 6.2. We tried before using another (slightly newer) version, and we never got it to work.&lt;/p&gt;
+&lt;p&gt;Reboot on a CentOS 6.2 livecd (press the '&lt;code&gt;c&lt;/code&gt;' key at startup to force the mac mini to look for a bootable CD).&lt;br /&gt;Follow the instructions to install CentOS on the hard disk.&lt;br /&gt;I customized the partition table a bit (50000MB for &lt;code&gt;/&lt;/code&gt;, 2048MB of swap space, and the rest of the disk for &lt;code&gt;/home&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;The only non-obvious part of the CentOS install is that the boot loaded needs to be installed on the MBR rather than on the partition where the system is installed. When the installer asks where grub should be installed, set it to /dev/sda (the default is /dev/sha2, and that won't boot). Of course I got this wrong in my first attempts.&lt;/p&gt;
+&lt;h2&gt;Installing Mozilla build dependencies&lt;/h2&gt;
+&lt;p&gt;First, install an editor that is usable to you. I typically use emacs, so: &lt;code&gt;sudo yum install emacs&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The Mozilla Linux build slaves use a specifically tweaked version of gcc so that the produced binaries have low runtime dependencies, but the compiler still has the build time feature set of gcc 4.7. If you want to use something as old as CentOS6.2 to build, you &lt;strong&gt;need&lt;/strong&gt; this specific compiler.&lt;/p&gt;
+&lt;p&gt;The good thing is, there's a yum repository publicly available where all the customized mozilla packages are available. To install it, create a file named &lt;code&gt;/etc/yum.repos.d/mozilla.repo&lt;/code&gt; and make it contain this:&lt;/p&gt;
+&lt;pre&gt;[mozilla]
+name=Mozilla
+baseurl=http://puppetagain.pub.build.mozilla.org/data/repos/yum/releng/public/CentOS/6/&lt;em&gt;x86_64&lt;/em&gt;/
+enabled=1
+gpgcheck=0&lt;/pre&gt;&lt;p&gt;Adapt the &lt;code&gt;baseurl&lt;/code&gt; to finish with &lt;code&gt;i386&lt;/code&gt; or &lt;code&gt;x86_64&lt;/code&gt; depending on whether you are making a 32 bit or 64 bit slave.&lt;/p&gt;
+&lt;p&gt;After saving this file, you can check that it had the intended effect by running this comment to list the packages from the mozilla repository: &lt;code&gt;repoquery -q --repoid=mozilla -a&lt;/code&gt;&lt;br /&gt;&lt;br /&gt;You want to install the version of gcc473 and the version of mozilla-python27 that appear in that list.&lt;/p&gt;
+&lt;p&gt;You also need several other build dependencies. &lt;a href=&quot;https://developer.mozilla.org/en-US/&quot;&gt;MDN &lt;/a&gt;has &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Build_Instructions/Linux_Prerequisites#RedHat_Enterprise_Linux_%28RHEL%29.2FCentOS.2FFedora&quot;&gt;a page listing them&lt;/a&gt;:&lt;/p&gt;
+&lt;code&gt;yum groupinstall 'Development Tools' 'Development Libraries' 'GNOME Software Development'&lt;/code&gt;&lt;br /&gt;
+&lt;code&gt;yum install mercurial autoconf213 glibc-static libstdc++-static yasm wireless-tools-devel mesa-libGL-devel alsa-lib-devel libXt-devel gstreamer-devel gstreamer-plugins-base-devel pulseaudio-libs-devel&lt;/code&gt;&lt;p&gt;
+Unfortunately, two dependencies were missing on that list (I've now fixed the page):
+&lt;br /&gt;&lt;code&gt;yum install gtk2-devel dbus-glib-devel&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;At this point, the machine should be ready to build Firefox.&lt;/p&gt;
+&lt;p&gt;Instantbird, because of libpurple, depends on a few more packages:&lt;br /&gt;&lt;code&gt;yum install avahi-glib-devel krb5-devel&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;And it will be useful to have ccache:&lt;br /&gt;
+&lt;code&gt;yum install ccache&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;Installing the buildbot slave&lt;/h2&gt;
+&lt;p&gt;First, install the buildslave command, which unfortunately doesn't come as a yum package, so you need to install easy_install first:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;yum install python-setuptools python-devel mpfr&lt;br /&gt;easy_install buildbot-slave&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;python-devel and mpfr here are build time dependencies of the buildbot-slave package, and not having them installed will cause compiling errors while attempting to install buildbot-slave.&lt;/p&gt;
+&lt;p&gt;We are now ready to actually install the buildbot slave. First let's create a new user for buildbot:&lt;/p&gt;
+
+&lt;code&gt;&lt;p&gt;adduser buildbot&lt;br /&gt;su buildbot&lt;br /&gt;cd /home/buildbot&lt;/p&gt;
+
+&lt;/code&gt;&lt;p&gt;Then the command to create the local slave is:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;buildslave create-slave --umask=022 /home/buildbot/buildslave buildbot.instantbird.org:9989 linux-s&lt;em&gt;N password&lt;/em&gt;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The buildbot slave will be significantly more useful if it starts automatically when the OS starts, so let's edit the crontab (&lt;code&gt;crontab -e&lt;/code&gt;) to add this entry:&lt;br /&gt;&lt;code&gt;@reboot PATH=/usr/local/bin:/usr/bin:/bin /usr/bin/buildslave start /home/buildbot/buildslave&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;The reason why the PATH environment variable has to be set here is that the default path doesn't contain /usr/local/bin, but that's where the mozilla-python27 packages installs python2.7 (which is required by &lt;code&gt;mach&lt;/code&gt; during builds).&lt;/p&gt;
+&lt;p&gt;One step in the Instantbird builds configured on our buildbot use &lt;code&gt;hg clean --all&lt;/code&gt; and this requires the purge mercurial extension to be enabled, so let's edit &lt;code&gt;~buidlbot/.hgrc&lt;/code&gt; to look like this:&lt;br /&gt;&lt;code&gt;$ cat ~/.hgrc &lt;br /&gt;[extensions]&lt;br /&gt;purge =&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Finally, ssh needs to be configured so that successful builds can be uploaded automatically. Copy and adapt &lt;code&gt;~buildbot/.ssh&lt;/code&gt; from an existing working build slave. The files that are needed are &lt;code&gt;id_dsa&lt;/code&gt; (the ssh private key) and &lt;code&gt;known_hosts&lt;/code&gt; (so that ssh doesn't prompt about the server's fingerprint the first time we upload something).&lt;/p&gt;
+&lt;p&gt;Here we go, working Instantbird linux build slaves! Figuring out all these details for our first CentOS6 slave took me a few evenings, but doing it again on the second slave was really easy.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Summer of Code 2014 projects</title>
+    <link>http://blog.queze.net/post/2014/05/20/Summer-of-Code-2014-projects</link>
+    <guid isPermaLink="false">urn:md5:3789d0d71eaa50aaf620e5942dad00d7</guid>
+    <pubDate>Tue, 20 May 2014 16:50:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;The coding period is starting for Google Summer of Code 2014. I am pleased to list the 28 projects (7 more than last year!) that are mentored this year under the Mozilla banner.&lt;/p&gt;
+&lt;p&gt;The title of each project is linked to the location where the student will be posting weekly updates on their progress, if you want to follow along with a project you are interested in. I’m sure they would appreciate any help or advice you have :-) Please help them write useful code during the summer!&lt;/p&gt;
+&lt;table&gt;
+&lt;tbody&gt;&lt;tr&gt;&lt;th&gt;Project Title
+&lt;/th&gt;&lt;th&gt;Student
+&lt;/th&gt;&lt;th&gt;Mentor
+&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://www.iakshay.net/google-summer-of-code/&quot;&gt;MDN – Bug Fixing and Polishing&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Akshay Aurora
+&lt;/td&gt;&lt;td&gt;David Walsh
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://andregarzia.com/pages/en/blog/&quot;&gt;Firefox OS Games Resources&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Andre Alves Garzia
+&lt;/td&gt;&lt;td&gt;Soledad Penades
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;https://wiki.mozilla.org/SpeechRTC_-_Speech_enabling_the_open_web&quot;&gt;Development of both online as offline speech recognition to B2G and Firefox&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Andre Natal
+&lt;/td&gt;&lt;td&gt;Guilherme Gonçalves
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://meemoo.org/blog&quot;&gt;Porting key Meemoo modules to NoFlo&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Vilson Vieira
+&lt;/td&gt;&lt;td&gt;Forrest Oliphant
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://pankajmalhotra.com/&quot;&gt;Functional Test Suite and Features for QA Taskboard - One and Done&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Pankaj Malhotra
+&lt;/td&gt;&lt;td&gt;Bob Silverberg
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://codingowl.tumblr.com/gsoc2014&quot;&gt;Implement Zest recorder and runner &lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Sunny Gogoi
+&lt;/td&gt;&lt;td&gt;Simon Bennetts
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;Improve font handling and text shaping in Servo
+&lt;/td&gt;&lt;td&gt;Patryk Obara
+&lt;/td&gt;&lt;td&gt;Patrick Walton
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://nitsurat.acm.org/gargsms/&quot;&gt;Add learning capability in the Gaia Keyboard prediction&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Sukant Garg
+&lt;/td&gt;&lt;td&gt;Jan Jongboom
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://blog.gabrielivanica.com/&quot;&gt;Browsercast&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Gabriel Ivanica
+&lt;/td&gt;&lt;td&gt;Greg Wilson
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;https://wiki.mozilla.org/User:Ishitva&quot;&gt;Migrate from YUI2 to YUI3 . Bug 453268&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Ishitva Goel
+&lt;/td&gt;&lt;td&gt;Byron Jones
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://yesitsyash.blogspot.in/search/label/google%20summer%20of%20code&quot;&gt;Implement Speech Synthesis on Desktop Firefox&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Yashasvi Girdhar
+&lt;/td&gt;&lt;td&gt;Eitan
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://sigwinch.wordpress.com/&quot;&gt;Add markdown support to Bugzilla&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Koosha Khajehmoogahi
+&lt;/td&gt;&lt;td&gt;David Lawrence
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://rishav006.wordpress.com/&quot;&gt;Improved messaging functionality and interaction in the SMS app&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Kumar Rishav
+&lt;/td&gt;&lt;td&gt;Gabriele Svelto
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://me-levens.rhcloud.com/&quot;&gt;Update Lightning Invitations to Latest Specification&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Malintha Fernando
+&lt;/td&gt;&lt;td&gt;Mohit Kanwal
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://benjamin.smedbergs.us/weekly-updates.fcgi/user/manishearth%40gmail.com&quot;&gt;Implement XMLHttpRequest in Servo&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Manish Goregaokar
+&lt;/td&gt;&lt;td&gt;Josh Matthews
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://mayanktg.github.io&quot;&gt;Instantbird: WebRTC Support&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Mayank Kumar
+&lt;/td&gt;&lt;td&gt;BenediktP
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://blog.nhnt11.com/&quot;&gt;Instantbird: Indexed Chat History and Infinite Conversation Scrollback&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Nihanth Subramanya
+&lt;/td&gt;&lt;td&gt;aleth
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://piotr.banaszkiewicz.org/tags/gsoc/&quot;&gt;Peer instruction on the Web&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Piotr Banaszkiewicz
+&lt;/td&gt;&lt;td&gt;mhoye
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://abyteaday.quora.com/&quot;&gt;Implementation of SVG Backend for PDF.js&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Pramodh KP
+&lt;/td&gt;&lt;td&gt;yury
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://blog.121n3.com/&quot;&gt;A Desktop Environment based on B2G&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Towfique Anam
+&lt;/td&gt;&lt;td&gt;Fabrice Desré
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://blog.rgaiacs.com/tags/gsoc2014.html&quot;&gt;Math virtual keyboard&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Raniere Silva
+&lt;/td&gt;&lt;td&gt;Salva
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://summeroflightning.wordpress.com/&quot;&gt;Improve Calendar Backends&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Reid Anderson
+&lt;/td&gt;&lt;td&gt;Philipp Kewisch
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://www.wiredcrow.com/?page_id=104&quot;&gt;Kitherder, web application for the Security Mentorships program&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Renee Cheung
+&lt;/td&gt;&lt;td&gt;Yvan Boily
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://sawrubh.tumblr.com/&quot;&gt;FileLinks in IMs / File transfer&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Saurabh Anand
+&lt;/td&gt;&lt;td&gt;clokep
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://sshagarwal.blogspot.fr/&quot;&gt;Thunderbird - Make the unit test framework work with maildir mailbox format&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Suyash Agarwal
+&lt;/td&gt;&lt;td&gt;R Kent James
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;http://tharshan-gsoc.logdown.com/&quot;&gt;Mozilla Intellego -- Terminology-driven automatic translation of web sites.&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Tharshan Muthulingam
+&lt;/td&gt;&lt;td&gt;Jeff
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;https://wiki.mozilla.org/Jetpack/e10s&quot;&gt;Implement Electrolysis Support for Addon SDK&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Tomislav Jovanovic
+&lt;/td&gt;&lt;td&gt;gozala
+&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&quot;https://vaibhavag.wordpress.com/&quot;&gt;Mochitest Failure Investigator&lt;/a&gt;
+&lt;/td&gt;&lt;td&gt;Vaibhav Agrawal
+&lt;/td&gt;&lt;td&gt;joelmaher
+&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;</description>
+  </item>
+
+  <item>
+    <title>Thoughts about mentoring Summer of Code students</title>
+    <link>http://blog.queze.net/post/2014/04/22/Thoughts-about-mentoring-Summer-of-Code-students</link>
+    <guid isPermaLink="false">urn:md5:f988c1a1e11d55d66fbc4b715c02da18</guid>
+    <pubDate>Tue, 22 Apr 2014 22:24:00 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;div class=&quot;&quot; id=&quot;magicdomid4&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;I've
+mentored Google Summer of Code students 3 years in a row, and I would
+like to share with new GSoC mentors what I've learned, in the hope that
+it can help them get more out of the summer. I'm going to assume that
+most mentors share these 3 goals:&lt;/span&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;get usable code at the end of the summer&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;train long term contributors who will stay active after the end of the summer&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;avoid spending disproportionate amounts of time mentoring.&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;div class=&quot;&quot; id=&quot;magicdomid10&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;I
+can't overstate how important it is to give the student good working
+habits from the very beginning. If you setup a good working relationship
+from the beginning, you are on for an awesome summer. If you let a
+student do things that frustrate you without sending immediate feedback
+about it, you'll both suffer during the whole summer.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;&quot; id=&quot;magicdomid12&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Here are some frequent problems that are likely to happen if you don't pay enough attention in the beginning:&lt;/span&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Because of the way school works, students are used to hiding their work
+until it's ready to be evaluated. Training them to show
+work-in-progress code so that you can provide early feedback and
+effectively help them takes time. You'll likely need to ask &quot;show me the
+code, please&quot; several times, encourage them, and comfort them that it's
+OK to show unfinished non-working code.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Students are used to receiving feedback from one person, and are likely
+to send their work only to their mentor when requesting feedback or
+expecting evaluation. Encourage the student to discuss the project with
+all the relevant people and more generally to interact with the
+community; avoid private discussion of technical matters. Doing this has
+2 interesting consequences: the time you'll spend mentoring the student
+will be dramatically reduced because the mentoring load will be spread
+across all your team (for me this often meant that when my student asked
+a question on IRC, he received a good and timely answer before I had
+even read the question!), and the student will feel like he's part of
+your team, which increases the likelihood of staying around after the
+summer.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Unless given specific directions, students tend to work on a branch or
+on a repository somewhere, and think about merging their code or getting
+a review only at the end of the summer. It's common to see student
+applications where the schedule says that they will do all the coding
+work, and then get a review during the last week of the summer to land
+the code. Experienced Mozilla developers knows there's no way sending a
+several-months-of-work-worth patch to someone's review queue and
+expecting a timely review will work. But students usually dramatically
+underestimate both the time it takes to get a review AND the time it
+takes to address the feedback (probably because at school they hand
+their work and only expect a grade, or a pass/fail in return). As a
+mentor it's your job to ensure they get their code through review. Urge
+students to write small patches, and get them reviewed as soon as
+possible. Students (and other developers ;)) will be tempted to 'just
+add one more little feature before attaching the patch'. Resist! Filing a
+new bug is easy. If the schedule of a student involves writing code
+without submitting it for review and inclusion, this raises a red flag
+for me: is there really no way to break this down to smaller pieces that
+could land separately? Don't hesitate to rediscuss the schedule with
+the student if you aren't fully happy with it.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Given that the students are being paid money to participate in GSoC, it
+makes sense that lots of students will consider summer of code as
+&quot;work&quot;, and have money be the primary motivator; which means that once
+they get the final payment, they disappear. This feeling can't be
+avoided in all cases, but if we can get the student to instead feel that
+the money is an opportunity to not do any other work during that time
+to focus full-time on volunteering for a project they care about, the
+student is likely to stay around for much longer than the summer. This
+can be done by treating the student more like a volunteer than like
+someone paid to be on your team. Get the student to have code landing
+early, and often. Get the student addicted to restarting his nightly
+build and seeing his code is in use there. Encourage the student to not
+only fix things directly related to his GSoC project, but to also spend a
+few hours here and there fixing his own itches and looking into other
+bugs that make the product better for his own use cases.&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;div class=&quot;&quot; id=&quot;magicdomid18&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;Here
+is one suggestion to get students started: during the community
+bounding period, assign them a 'small' project to warm up. The ideal
+characteristics of such a project are:&lt;/span&gt;&lt;/div&gt;&lt;ul&gt;&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;will get the student to go through all the processes of your team
+(using bugzilla, attaching patches, requesting review, handling review
+comments, …)&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;will get the student to touch code areas that will be relevant during the summer.&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;can be completed by the student before the ends of the community
+bounding period (think of it as a 2-weeks project, but size it like
+something you would do in a rainy week-end. Remember that most of the
+time spent by the student will not be actual coding, but learning to
+interact with your team, and this is the very reason why this project is
+done during the community bounding period).&lt;/span&gt;&lt;/li&gt;
+&lt;li&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;once this small project lands, it will be highly visible, and will
+cause the student to receive appreciation from other people in your
+team/community.&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;div class=&quot;&quot; id=&quot;magicdomid23&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;It's
+not always possible to find a project fitting perfectly here, but it's
+usually possible to find something close enough to fit the purpose of
+getting the student started. The Instantbird team will be using this
+'small community bounding project' approach to starting the mentoring
+relationship for the third time this year.&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;&quot; id=&quot;magicdomid25&quot;&gt;&lt;span class=&quot;author-g-db1yqiaaskssz122zlos&quot;&gt;I
+tend to think that getting the student started on the right track is
+the most important thing a mentor needs to do, and if it's done
+correctly the rest of the mentoring is easy and pleasurable.&lt;/span&gt;&lt;/div&gt;</description>
+  </item>
+
+  <item>
+    <title>Summer of Code Student application deadline approaching</title>
+    <link>http://blog.queze.net/post/2014/03/20/Summer-of-Code-Student-application-deadline-approaching</link>
+    <guid isPermaLink="false">urn:md5:ba6c569fdf994a1ee5324b8dc04d9071</guid>
+    <pubDate>Thu, 20 Mar 2014 18:37:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;This is just a reminder to students interested in applying for Google Summer of Code 2014: the application deadline is &quot;21 March 19:00 UTC&quot; and no late application will be accepted.&lt;/p&gt;
+&lt;p&gt;If you intend to apply to Google Summer of Code this year and haven't submitted your application yet, don't wait: &lt;a href=&quot;https://www.google-melange.com/gsoc/homepage/google/gsoc2014&quot;&gt;apply now&lt;/a&gt;!&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Google Summer of Code Student who went on to become a Mentor/Org Admin</title>
+    <link>http://blog.queze.net/post/2014/02/28/Google-Summer-of-Code-Student-who-went-on-to-become-a-Mentor/Org-Admin</link>
+    <guid isPermaLink="false">urn:md5:4343a04437a70735181b1bd9299686fb</guid>
+    <pubDate>Fri, 28 Feb 2014 14:28:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;Since 2006, I've probably tried every possible role as a Google Summer of Code participant: accepted student, rejected student, submitter of a rejected organization application, mentor of successful students, mentor of a failing student, co-administrator, and now administrator. Here's my story:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;In 2006, I had the pleasure of being selected to participate as a student for the Mozilla organization. The &lt;a title=&quot;Bug 339102 - SoC Tracking - Enhanced Page Info window&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=339102&quot;&gt;work I did on the Page Info dialog&lt;/a&gt; eventually shipped as part of Firefox 3.0.&lt;/li&gt;
+&lt;li&gt;In 2007 I applied as a student again, to a different organization, but unfortunately wasn't selected. However, I received an email from someone from the organization who told me the application was good and they would have liked to take me as a student if they had received more slots. He offered to mentor me if I decided to move forward with the project anyway, which I did! I completed the project and in October 2007, Instantbird 0.1 was released. &lt;a href=&quot;http://instantbird.com/&quot;&gt;Instantbird&lt;/a&gt; is a cross platform, easy to use, instant messaging client based on Mozilla technologies.&lt;/li&gt;
+&lt;li&gt;In 2007, I was selected by Mozilla for an internship in the Firefox team, and spent the end of the year in their headquarters in Mountain View, California. I think this was in large part because people were happy about the work I did in 2006 as a Summer of Code student.&lt;/li&gt;
+&lt;li&gt;In 2008, 2009 and 2010, I focused on Instantbird, which had a growing community of volunteers improving it every day. I sent Summer of Code organization applications on behalf of the Instantbird community, but they weren't accepted. When I asked for feedback, I was told that we should try to work with Mozilla.&lt;/li&gt;
+&lt;li&gt;And this is what we did in 2011! &lt;a title=&quot;Gervase Markham&quot; href=&quot;http://blog.gerv.net/&quot;&gt;Gerv&lt;/a&gt; agreed to let us add Instantbird project ideas to the Mozilla idea list. In 2011 I mentored a student, who completed successfully his work on implementing XMPP in JavaScript for Instantbird. In October I attended the mentor summit in Mountain View.&lt;/li&gt;
+&lt;li&gt;In 2012, I mentored another student, who did some excellent work on improving the user experience for new users during the first run of Instantbird.&lt;/li&gt;
+&lt;li&gt;In 2013, Gerv, who had been handling Summer of Code for Mozilla since the beginning in 2005, asked me if I would be interested in eventually replacing him as an Administrator. After some discussion, I accepted the offer, and we agreed to have a transition period. In 2013, I was backup administrator. I also mentored for the third year in a row. Unfortunately I had to fail my student. This was frustrating, but also a learning experience.&lt;/li&gt;
+&lt;li&gt;In 2014, I submitted the Summer of Code organization application on behalf of Mozilla, &lt;a href=&quot;http://www.google-melange.com/gsoc/org2/google/gsoc2014/mozilla&quot;&gt;it was accepted&lt;/a&gt; and we are looking forward to another great summer of code!&lt;/li&gt;
+&lt;li&gt;On a more personal note, after being a Mozilla volunteer for years (since 2004), working on the Thunderbird team (from 2011 to 2012), and then on WebRTC apps (since October 2012), I'm starting in March 2014 as a full time engineer in the Firefox team. Which is the team for which I was a Summer of Code student, 8 years ago.&lt;/li&gt;
+&lt;/ul&gt;</description>
+  </item>
+
+  <item>
+    <title>What I remember of flying British Airways…</title>
+    <link>http://blog.queze.net/post/2014/02/27/What-I-remember-of-flying-British-Airways%E2%80%A6</link>
+    <guid isPermaLink="false">urn:md5:05e1fb8799d85f9a2d55a4ac2bb010cd</guid>
+    <pubDate>Thu, 27 Feb 2014 18:37:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Divers</category>
+    
+    <description>    &lt;p&gt;I'll remember British Airways as a an airline where the service is as poor as the ticket is expensive. Here is how my journey from San Francisco to France happened on February 14, 15 AND 16.&lt;/p&gt;
+&lt;h2&gt;BA286&lt;/h2&gt;
+&lt;p&gt;It started going awry at the end of the BA286 flight (which by the way was late: departed at 20:38 instead of 19:45 from SFO). When the aircraft started its descent to London Heathrow, cold water started dripping from the ceiling of the cabin, onto my shoulder and the armrest of my seat (45G). I pressed the button to call a flying attendant. Nobody came. When leaving the aircraft, I casually mentioned the problem to a flying attendant who was standing by so that this could get fixed and avoid a shower for the new passenger. His reply was &quot;oh, it's normal, it's condensation, it happens sometimes. There's nothing we can do about it. It's just that you are our unlucky passenger today.&quot;&lt;br /&gt;Well, maybe there's nothing British Airways can do about it, but when I had the exact same incident a few years ago on an Air France flight, the hostess rushed to stop the rain by absorbing all the water that was on the ceiling with a pile of paper towels, and apologized for the inconvenience.&lt;br /&gt;This small incident was actually just the start of a continued shower of disappointments during this journey.&lt;/p&gt;
+&lt;h2&gt;Heathrow&lt;/h2&gt;
+&lt;p&gt;Heathrow was not my final destination, but just a (dis)connection. A long connection (2+ hours) which became a very long connection, because the BA322 flight to Paris was delayed. Originally scheduled to depart at 17:50 from gate B33 (or at least I think that's the gate the person at the passport check told me), it was announced as &quot;gate opens at 19:59&quot;!&lt;br /&gt;It was quite obvious I would miss my train connection in CDG (21:06) and have to change my ticket. I estimated the new arrival time in Paris: given that the flight was now expected to depart around 20:30, there was no way it could reach Paris before 22:07, the time of the last train toward Lille. Taking the BA322 flight meant being stuck in CDG for the night.&lt;br /&gt;After noticing this, I researched the other possible options, and reached out to the British Airways staff to request their assistance.&lt;br /&gt;Another possible option was taking the BA336 flight for Paris Orly (it was late too, and wasn't closed yet. It would have taken me to Paris at a time when finding a train connection from Paris would have still been possible). The staff told me that flight was already full and there was no way to get a seat there. Maybe that's true, but I have doubts, given that I heard numerous calls more than half an hour after that indicating that the gate would close soon and passengers should proceed immediately.&lt;br /&gt;The last possible option was to take the metro to London St. Pancras, and take a Eurostar to Lille. That was actually the safest and fastest possible option, but the BA staff was very reluctant, saying that BA would probably not pay for that ticket, and that getting back my checked in suitcase would be quite a hassle.&lt;br /&gt;They advised that I stick with the BA322 flight, however late it would be, and figure out something in Paris with the BA staff there, although BA would possibly not pay the hotel because the contract was to transport me to Paris, and the train wasn't part of the contract, blah blah blah. They said that I should keep receipts of any incurred cost and file a complaint to British Airways, because even though they had no obligation to pay for the hotel, they do study cases on a case by case basis, and may decide to do something.&lt;br /&gt;They gave me a £5 voucher for a refreshment and instructed me to return to the main gate.&lt;br /&gt;With that voucher I got a small (but £4.70, because, you know, everything is super expensive in airports…) tuna sandwich that kept me from starving, but not from being hungry.&lt;/p&gt;
+&lt;h2&gt;BA322&lt;/h2&gt;
+&lt;p&gt;The flight finally departed at 21:21 (according to FlightAware), and landed at 23:04. It seems the flight was shorter than usual (maybe the captain was trying to catchup a little bit on the schedule?), and it seemed to take the crew by surprise when they hear that we were starting our descent to Paris and people should return to their seats. Only about two third of the passengers had been offered snacks and hot drinks. It was too late for the others. I was hoping to get some food and a coffee during the flight to stay awake and be ready to affront the inevitable complications in Roissy; no luck… All I got was a coke.&lt;/p&gt;
+&lt;h2&gt;Roissy&lt;/h2&gt;
+&lt;p&gt;Of course, at the Roissy airport, the British Airways staff did a really good job of being invisible and impossible to find. The only person I could talk to was the lady at the baggage claim desk, who was as nice as she was unable to do anything useful for me. The best she could do was call some British Airways people, who said they wouldn't deal with the passengers in Paris, and that anyway, the delay was not their fault, but only due to the bad weather. No, it was not! Most flights in Heathrow were delayed, yes, but not by more than 3 hours. (I actually have a photo showing that at 19:42, all the flights with original departure times before 18:30 but BA322 had their gate already open, or had already departed.)&lt;br /&gt;The person at the baggage claim desk told me to follow the signage to the information desk where they could help me find an hotel. I did. And finally found a closed desk, with nobody around. At midnight, Roissy is deserted, and the remaining people are mostly homeless people. The only man I could find near the information desk was busy collecting and storing away luggage trolleys. He indicated me where I should go to find the hotel shuttle. I waited there in the cold for what seemed like half an hour, then hopped into the shuttle. I had no idea of which hotel to go to. I asked the bus driver for advice about which one would be the least expensive. He dropped me at the &quot;Première Classe&quot;, which indeed seemed to be a cheap hotel with minimal service. The guy at the front desk scolded me for arriving at his hotel at 1am without a reservation, told me how lucky (really?!?) I was that a room was available, and urged me to at least call from the airport next time (to be honest, I don't see how I could have done that without help from the British Airways staff, especially at a time when the airport's info desk was closed). 1am, I reached my room and collapsed on the bed. The night cost me 65.47euros, that I think should have been paid by British Airways.&lt;br /&gt;Next morning, I took a quick breakfast, a the shuttle back to the airport, and finally took a train to Lille.&lt;/p&gt;
+&lt;h2&gt;Arrival&lt;/h2&gt;
+&lt;p&gt;I reached home around noon. The same evening, I started not feeling very well… and I spent the next 2 days in bed with fever. I have no doubt that this was at least in large part (if not fully) caused by British Airways' incapability of taking care of passengers blocked because of delays. I had almost no food on Saturday (a small breakfast in the first flight, and a tiny sandwich in Heathrow. I had no food in the flight to Paris, despite the tickets stating there would be snacks. I was dropped in the middle of the night in a cold and deserted airport, with no connection departing from it until the next day, and with nobody taking care of setting up accommodation for the night. Is this the level of service you would expect for a ticket that was paid more than $2,000? I'm disappointed. Very disappointed.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Mozilla and Google Summer of Code, FOSDEM talk</title>
+    <link>http://blog.queze.net/post/2014/02/06/Mozilla-and-Google-Summer-of-Code%2C-FOSDEM-talk</link>
+    <guid isPermaLink="false">urn:md5:07be0d9fb06643e440367b612e64c8e9</guid>
+    <pubDate>Thu, 06 Feb 2014 00:26:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;Last Saturday at &lt;a href=&quot;https://fosdem.org/2014/&quot;&gt;FOSDEM&lt;/a&gt;, I had the pleasure of giving a talk with &lt;a href=&quot;http://blog.gerv.net/&quot;&gt;Gerv&lt;/a&gt; about Mozilla's participation in &lt;a href=&quot;https://wiki.mozilla.org/SummerOfCode&quot;&gt;Google Summer of Code&lt;/a&gt;. If you missed us, you can see the &lt;a href=&quot;http://people.mozilla.org/~fqueze2/slides/fosdem2014/&quot;&gt;slides&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;This post is also a good opportunity to remind you to add your ideas to our &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode14:Brainstorming&quot;&gt;brainstorm wiki page&lt;/a&gt; now if you are interested in mentoring a student this summer.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Project ideas for Summer of Code 2014</title>
+    <link>http://blog.queze.net/post/2014/01/24/Project-ideas-for-Summer-of-Code-2014</link>
+    <guid isPermaLink="false">urn:md5:af675d129228806406dd5c38774af9a4</guid>
+    <pubDate>Fri, 24 Jan 2014 21:20:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Summer of Code</category>
+    <description>    &lt;p&gt;Google will be running this year &lt;a title=&quot; Google Code-in 2013 and Google Summer of Code 2014 are on &quot; href=&quot;http://google-opensource.blogspot.fr/2013/10/google-code-in-2013-and-google-summer.html&quot;&gt;the 10th edition of Summer of Code&lt;/a&gt;.
+Mozilla has had the pleasure of participating every year so far, and we
+are hoping to participate &lt;a href=&quot;https://wiki.mozilla.org/SummerOfCode&quot;&gt;again&lt;/a&gt; this year. In the next 3 weeks, we need
+to prepare a list of suitable projects to support our application.&lt;br /&gt;
+&lt;br /&gt;&lt;strong&gt;&lt;strong&gt;Can you think of a 3-month coding project you would love to guide a student through?&lt;/strong&gt;&lt;/strong&gt; This is your chance to get a student
+focusing on it for 3 months! Summer of Code is a great opportunity to introduce new people to
+your team and have them work on
+projects you care about but that aren't on the critical path to shipping your next release.&lt;br /&gt;&lt;br /&gt;Here are the conditions for the projects:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;completing the project should take roughly 3 months of effort;&lt;/li&gt;
+&lt;li&gt;any part of the Mozilla project (Firefox, Firefox OS, Thunderbird,
+Instantbird, SeaMonkey, Bugzilla, L10n, NSS, IT, and many more) can
+submit ideas, as long as they require coding work;&lt;/li&gt;
+&lt;li&gt;
+there is a clearly identified mentor who can guide the student through the project.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;br /&gt;If
+you have an idea, please put it on the &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode14:Brainstorming&quot;&gt;Brainstorming page&lt;/a&gt;, which is our
+idea development scratchpad. Please read the instructions at the top –
+following them vastly increases your chances of your idea getting added
+to the &lt;a href=&quot;https://wiki.mozilla.org/Community:SummerOfCode14&quot;&gt;formal Ideas page&lt;/a&gt;.&lt;br /&gt;
+&lt;br /&gt;The deadline to submit project ideas and help us be selected by Google is February 14th.&lt;br /&gt;&lt;br /&gt;Please feel free to discuss with me any Summer of Code question you may have.&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Instantbird bugs should now go to bugzilla.mozilla.org</title>
+    <link>http://blog.queze.net/post/2014/01/21/Instantbird-bugs-should-now-go-to-bugzilla.mozilla.org</link>
+    <guid isPermaLink="false">urn:md5:e287ae672deb32212d91ebe88d107341</guid>
+    <pubDate>Tue, 21 Jan 2014 20:07:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    
+    <description>    &lt;p&gt;From 2007 to late 2013, Instantbird bugs were tracked on bugzilla.instantbird.org. This was fine as long as Instantbird was completely separate from all other Mozilla products, but when Instantbird's chat backend was re-used to add instant messaging to Thunderbird, we started having bugs that were relevant for both Instantbird and Thunderbird. Having them in two separate bug trackers was messy and caused lots of duplicates.&lt;/p&gt;
+&lt;p&gt;We started discussing this at MozCampEU2012 in Warsaw. It quickly became apparent that getting a product created for Instantbird and another one for the chat core wasn't a problem, but that importing our existing bugs would require more work. The plan at this time was to import the existing BIO (bugzilla.instantbird.org) database into BMO (bugzilla.mozilla.org). Unfortunately, while it seems bugzilla already supports importing bugs from plenty of other bug trackers, it doesn't support importing bugs from itself. Some people from the BMO team thought writing such an importer would be a nice and not-very-difficult project, so they agreed to work on it. We &lt;a title=&quot;Bug 749586 - Import bugzilla.instantbird.org into bugzilla.mozilla.org&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=749586&quot;&gt;filed a bug&lt;/a&gt; to figure out the details. And nothing happened for months, because there were (understandably) higher priorities for the BMO team. Ten months later, the BMO team concluded that they were unlikely to ever get time for this project, and suggested we work on another solution instead: using &lt;a href=&quot;https://wiki.mozilla.org/Bugzilla:REST_API&quot;&gt;BzAPI&lt;/a&gt; to do the import ourselves. This was more work than we could get done immediately, so we kept that in mind for later. &lt;a href=&quot;http://clokep.blogspot.com/&quot;&gt;Patrick Cloke&lt;/a&gt; started experimenting with BzAPI but couldn't get enough of my and others' attention to complete the project.&lt;/p&gt;
+&lt;p&gt;In December 2013, we decided to move forward with the import, and &lt;a title=&quot;Bug 951944 - New products and components for the import of bugs from bugzilla.instantbird.org&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=951944&quot;&gt;requested the creation of the products&lt;/a&gt; just before the holidays. We drafted a plan in which we broke down the work that needed to happen in several steps that could each be performed by a (relatively) simple and independent script:&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;first, download all the data from bugzilla.mozilla.org in JSON, create a file for the data of each bug&lt;/li&gt;
+&lt;li&gt;slice the content of each file from 1. into a stream of events (each event is an action performed by the bugzilla users).&lt;/li&gt;
+&lt;li&gt;transform the sliced events into events that would apply on BMO (eg. change product names when they don't match exactly on BIO and BMO)&lt;/li&gt;
+&lt;li&gt;merge the events of all bugs into a single file; without duplicates (eg. when marking a bug as a duplicate of another bug, this creates events on both bugs, but we only need to import one, the other happens automatically).&lt;/li&gt;
+&lt;li&gt;replay events on BMO: this needs to create a map of new bug and attachment numbers, and replace them automatically in comments.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The plan looked simple on paper (well, on &lt;a href=&quot;https://etherpad.mozilla.org/bugzilla-instantbird-merge-bzapi&quot;&gt;an etherpad&lt;/a&gt;). Reality got in the way, with plenty of not-really-expected complications:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;BzAPI has lots of documented (eg. can't create an attachment at the same time as filing a bug; can't set the component without also setting the product, ...) and undocumented (eg. UTF8 is supported when filing a bug or adding comments, but not when commenting on an attachment) limitations.&lt;/li&gt;
+&lt;li&gt;The format of data downloaded from BzAPI is significantly different from the format of data we need to send it to do changes. This is especially true for attachment flags.&lt;/li&gt;
+&lt;li&gt;Sometimes the values in bug fields don't match what's in the history of events that happened to the bug. This problem occurs when users changed their bugzilla email address, when products got renamed. The worst case we had to deal with was a target milestone that was renamed, then a new target milestone was created with the original name, and some bug's milestone was changed from the renamed milestone to the new milestone with the original name. This caused an interesting complication because we ended up with changes where the mapped value was the same before and after the change.&lt;/li&gt;
+&lt;li&gt;We initially started using the js shell for our scripts, but to do HTTP requests, we needed XPCOM, so we switched to xpcshell instead. Unfortunately, &lt;a title=&quot;Bug 962208 - xpcshell's readline function truncates its result after 255 characters&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=962208&quot;&gt;xpcshell's readline() function truncates input data after 255 characters&lt;/a&gt;. Later I discovered that &lt;a title=&quot;Bug 933885 - xpcshell's dump() mangles non-ASCII output&quot; href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=933885&quot;&gt;xpcshell doesn't handle UTF8 input/output&lt;/a&gt; by default, and had to use nsIScriptableUnicodeConverter for that.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our scripts are all in the &lt;a href=&quot;http://hg.instantbird.org/bio-merge/&quot;&gt;bio-merge&lt;/a&gt; hg repository. The result of step 4. is a 120MB text file with each line being the JSON representation of an event that needs to be replayed. We tested replaying events on bugzilla-dev.allizom.org first for a single bug, then for a few set of bugs that had dependencies. Finally we replayed our whole set of bugs (2294 bugs, 20984 events), and after fixing the issues that surfaced during that test run, we were ready to do the final import.&lt;/p&gt;
+&lt;p&gt;The final import took 848 minutes to complete (14 hours). 240 events failed to replay because some components didn't have on BMO the exact names the script expected. I fixed the script and replayed these again.&lt;/p&gt;
+&lt;p&gt;We finished by adding comments in all existing BIO bugs giving the new URL, and closed BIO (it's now read-only).&amp;nbsp; As of &lt;span class=&quot;bz_comment_time&quot;&gt;2013-12-30, new Instantbird bugs should be filed on bugzilla.mozilla.org, in the &lt;a href=&quot;https://bugzilla.mozilla.org/enter_bug.cgi?product=Instantbird&quot;&gt;Instantbird&lt;/a&gt; product for UI bugs, in the &lt;a href=&quot;https://bugzilla.mozilla.org/enter_bug.cgi?product=Chat%20Core&quot;&gt;Chat Core&lt;/a&gt; product for backend issue (this part of the code is shared with Thunderbird), and in the &lt;a href=&quot;https://bugzilla.mozilla.org/enter_bug.cgi?product=Instantbird Servers&quot;&gt;Instantbird Servers&lt;/a&gt; product of issues with our servers.&lt;br /&gt;&lt;/span&gt;&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Réveil</title>
+    <link>http://blog.queze.net/post/2014/01/21/R%C3%A9veil</link>
+    <guid isPermaLink="false">urn:md5:383961c6594a8130fdb501f9597d93ee</guid>
+    <pubDate>Tue, 21 Jan 2014 00:41:00 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    
+    <description>    &lt;p&gt;Après plusieurs années de sommeil, je vais réveiller mon blog. Je compte parler ici en anglais d'&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;Instantbird&lt;/a&gt;, de mon travail pour &lt;a href=&quot;https://careers.mozilla.org/en-US/&quot;&gt;Mozilla&lt;/a&gt;, de &lt;a href=&quot;https://developers.google.com/open-source/soc/&quot;&gt;Google Summer of Code&lt;/a&gt; (dont j'administre la participation de Mozilla), mais aussi en français de sorties avec mon &lt;a href=&quot;http://ami6.fr/&quot;&gt;Ami 6&lt;/a&gt;, et peut-être des travaux dans ma maison.&lt;/p&gt;
+&lt;p&gt;A bientôt !&lt;/p&gt;</description>
+  </item>
+
+  <item>
+    <title>Instantbird 1.0, sorti simultanément en 11 langues (dont le français évidemment)</title>
+    <link>http://blog.queze.net/post/2011/06/28/Instantbird-1.0%2C-sorti-simultan%C3%A9ment-en-11-langues-%28dont-le-fran%C3%A7ais-%C3%A9videmment%29</link>
+    <guid isPermaLink="false">urn:md5:9f4fd6a092824126812ed44af9adc397</guid>
+    <pubDate>Tue, 28 Jun 2011 16:12:19 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>Mozilla</category>
+    <category>Instantbird</category>
+    <description>    
+   &lt;p&gt;&lt;a href=&quot;http://instantbird.com/&quot;&gt;Instantbird 1.0&lt;/a&gt; vient de sortir.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;&lt;img src=&quot;http://www.instantbird.com/press/logos/instantbird-text-512x128.png&quot; alt=&quot;Instantbird logo&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Cette version apporte de très nombreuses améliorations. Cette fois ci, non seulement le logiciel en lui-même est traduit, mais le site web aussi, alors pour savoir ce qui est changé depuis la version précédente, il suffit donc tout simplement d'&lt;a href=&quot;http://www.instantbird.com/release-notes.html&quot;&gt;aller voir sur le site d'Instantbird&lt;/a&gt; lui-même &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:)&quot; /&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.instantbird.com/&quot;&gt;&lt;img src=&quot;http://www.instantbird.com/press/screenshots/1.0-winaero-screenshot-homepage-big.png&quot; alt=&quot;Instantbird 1.0 - copie d'écran sur Windows 7&quot;/&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;De nombreux blogs reprennent déjà l'information. N'hésitez pas à faire de même (ou à partager sur Facebook ou twitter) afin que vos amis en profitent aussi&amp;nbsp;!&lt;/p&gt;
+</description>
+  </item>
+
+</channel>
+</rss>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xml:lang="en">
+
+  <title type="html">Florian Quèze - Tag - performance</title>
+  <subtitle type="html">Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ...</subtitle>
+  <link href="http://blog.queze.net/feed/tag/performance/atom" rel="self" type="application/atom+xml"/>
+  <link href="http://blog.queze.net/" rel="alternate" type="text/html"
+  title="Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ..."/>
+  <updated>2026-03-22T03:43:22+01:00</updated>
+  <author>
+    <name></name>
+  </author>
+  <id>urn:md5:d59fad53f8b1c54effe51c1e5b249670</id>
+
+  <entry>
+    <title>Catching flickering regressions</title>
+    <link href="http://blog.queze.net/post/2017/12/05/Catching-flickering-regressions" rel="alternate" type="text/html"
+    title="Catching flickering regressions" />
+    <id>urn:md5:7d0dae7c1e8cd58ce5d996e477e35506</id>
+    <published>2017-12-05T20:47:00+01:00</published>
+    <updated>2017-12-05T20:47:59+01:00</updated>
+    <author><name>Florian Quèze</name></author>
+    <dc:subject>Mozilla</dc:subject>
+    <dc:subject>performance</dc:subject>
+    <content type="html">    &lt;p&gt;For Firefox 57, as part of the Photon Performance project, one of the
+things we worked on was dramatically reducing flickering in the main
+browser window. We focused especially on what happens when opening the
+first browser window during startup, and when opening new browser
+windows.&lt;br /&gt;&lt;br /&gt;To identify bugs, we &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1372518#c0&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1372518%23c0&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNGmtWyKTq358nomUf_azbiQZPlKng&quot;&gt;looked frame by frame at video recordings&lt;/a&gt;.
+This was good enough to file bugs for an initial exploration, but was
+time consuming, and won't help us to keep these interactions flicker
+free going forward.&lt;br /&gt;&lt;br /&gt;I'm happy to announce that these two
+interactions are now covered by automated flickering tests that will
+catch any regression there:&lt;br /&gt;&lt;a href=&quot;https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNEVtLKbH5HRh1TQq3LB7ev-6Vcx8Q&quot;&gt;https://searchfox.org/mozilla-&lt;wbr&gt;central/source/browser/base/co&lt;wbr&gt;ntent/test/performance/browser&lt;wbr&gt;_startup_flicker.js&lt;/a&gt;&lt;br /&gt;&lt;a href=&quot;https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNGqEpUmnoTJ-gr-8V1DbkCqhwIqzQ&quot;&gt;https://searchfox.org/mozilla-&lt;wbr&gt;central/source/browser/base/co&lt;wbr&gt;ntent/test/performance/browser&lt;wbr&gt;_windowopen_flicker.js&lt;/a&gt;&lt;br /&gt;&lt;br /&gt;These tests currently contain whitelists of known bugs (blocking &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=1421456&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1421456&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNEogQEuEbaHV7CgJU5AiOeB2146zw&quot;&gt;bug 1421456&lt;/a&gt;).&lt;/p&gt;
+Here is how these tests work:&lt;br /&gt;&lt;ul&gt;&lt;li&gt;as soon as the window we care about is created, we add a MozAfterPaint event listener to it.&lt;/li&gt;
+&lt;li&gt;for each received MozAfterPaint event, we capture a screenshot of the window using &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&quot; target=&quot;_blank&quot; data-saferedirecturl=&quot;https://www.google.com/url?hl=en&amp;amp;q=https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&amp;amp;source=gmail&amp;amp;ust=1512589545257000&amp;amp;usg=AFQjCNF4_r45yxxCGeu1Bq4Cevns0REsGg&quot;&gt;CanvasRenderingContext2D.drawW&lt;wbr&gt;indow()&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;remove the event listener after the window is done loading and after several Services.tm.idleDispatchToMain&lt;wbr&gt;Thread callbacks to ensure that the window has settled.&lt;/li&gt;
+&lt;li&gt;compare the pixel data of each of the captured frames to identify areas that have changed.&lt;/li&gt;
+&lt;li&gt;for changed areas, see if they are whitelisted, if not make the test
+fail and dump base64 encoded data urls of the before/after screenshots,
+so that the test failure can be visually debugged.&lt;/li&gt;
+&lt;/ul&gt;&lt;div dir=&quot;ltr&quot;&gt;We
+currently cover only the startup and window opening cases, but I expect
+us to add similar tests to more areas in the future. Each time we spend
+effort reducing flickering in some area of our UI, we should add tests
+for it to prevent regression.&lt;/div&gt;</content>
+  </entry>
+
+</feed>

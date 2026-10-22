@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet title="XSL formatting" type="text/xsl" href="/feed/rss2.xsl" ?>
+<rss version="2.0"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Florian Quèze - Tag - 42gl</title>
+  <link>http://blog.queze.net/</link>
+  <atom:link href="http://blog.queze.net/feed/tag/42gl/rss2" rel="self" type="application/rss+xml"/>
+  <description>Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ...</description>
+  <language>en</language>
+  <pubDate>Sun, 22 Mar 2026 03:43:22 +0100</pubDate>
+  <copyright></copyright>
+  <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+
+  <item>
+    <title>Remarque juste après la soutenance</title>
+    <link>http://blog.queze.net/post/2006/06/15/Remarque-juste-apr%C3%A8s-la-soutenance</link>
+    <guid isPermaLink="false">urn:md5:ae30bd5fbe61fdbf2676e9d09de9a516</guid>
+    <pubDate>Thu, 15 Jun 2006 13:27:58 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;Remarque de Krisboul juste après la soutenance&amp;nbsp;: « Un bon disque c'est bien mais si la pochette est à gerber &lt;img src=&quot;http://blog.queze.net/smileys/vomit.gif&quot; alt=&quot;(vomit)&quot; /&gt; ... » &lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Citations d'Epi3D</title>
+    <link>http://blog.queze.net/post/2006/06/15/Citations-d-Epi3D</link>
+    <guid isPermaLink="false">urn:md5:7fda066e92ab0204936ef4acfad9f290</guid>
+    <pubDate>Thu, 15 Jun 2006 02:25:33 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;Alors que le projet 42gl est sur le point d'arriver à son terme, nous avons décidé de vous offrir en exclusivité l'accès à l'intégralité citations que nous avons enregistrées pendant l'année dans notre bugzilla&amp;nbsp;:&lt;/p&gt;
+
+&lt;ul&gt;
+ &lt;li&gt;raynau_q --&amp;gt; queze_f&amp;nbsp;: « Un point d'exclamation de toi équivaut à trois points d'exclamation pour les autres... »&lt;/li&gt;
+ &lt;li&gt;raynau_q&amp;nbsp;: « C'est moches les erreurs du compilo. J'veux un PDF. »&lt;/li&gt;
+ &lt;li&gt;ramaki_j&amp;#64;Home with dotnetSoul: ya ptet un microclimat a VJ&lt;/li&gt;
+ &lt;li&gt;raynau_q -&amp;gt; mec du mc'do&amp;nbsp;: &amp;quot;Pardon, je suis désolé.&amp;quot;&lt;br /&gt;réponse de l'ami du monsieur à raynau_q&amp;nbsp;: &amp;quot;De rien&amp;nbsp;!&amp;quot;&lt;br /&gt;Le monsieur&amp;nbsp;: &amp;quot;Pffrrrr, ca veut rien dire&amp;nbsp;!&amp;quot;&lt;/li&gt;
+ &lt;li&gt;Real programmers should not comment their codes. It was hard to write, it sould be hard to understand.&lt;/li&gt;
+ &lt;li&gt;queze_f&amp;nbsp;: &amp;quot;Bah, je ne suis pas convaincu (que ce soit bien utile)&amp;quot;&lt;/li&gt;
+ &lt;li&gt;raynau_q --&amp;gt; queze_f&amp;nbsp;: « Dès que j'aurai réglé le problème du moche, ça ira. »&lt;/li&gt;
+ &lt;li&gt;schiaf_c&amp;nbsp;: « Tiens, je pensais que c'était moi le moche... »&lt;/li&gt; &lt;li&gt;raynau_q --&amp;gt; nivaul_s&amp;nbsp;: « T'es sûr que t'as rien d'autre à faire que de regarder les navions&amp;nbsp;? »&lt;/li&gt;
+ &lt;li&gt;peillon_p --&amp;gt; Epi3D&amp;nbsp;: « La tectonique des plaques a fait des ravages dans les couloirs. »&lt;/li&gt;
+ &lt;li&gt;nivaul_s -&amp;gt; queze_f&amp;nbsp;: &amp;quot;Ah je sais pourquoi je ne m'en souviens plus&amp;nbsp;!&amp;quot;&lt;/li&gt;
+ &lt;li&gt;raynau_q -&amp;gt; rayaud_q &amp;quot;Quel imbécile&amp;nbsp;!!&amp;quot;&lt;/li&gt;
+ &lt;li&gt;raynau_q --&amp;gt; queze_f&amp;nbsp;: « Ah oui un truc génial aussi... Dans Windows® tu fais ... ah nan c'est vrai, tu t'en fous tu l'as pas »&lt;/li&gt;
+ &lt;li&gt;nivaul_s --&amp;gt; Epi3D&amp;nbsp;: « Gens d'Epi3D, frappez Quentin. Si vous ne savez pas pourquoi, lui il le sait&amp;nbsp;! »&lt;br /&gt;raynau_q --&amp;gt; Epi3D&amp;nbsp;: « Parce que je suis chiant&amp;nbsp;? »&lt;/li&gt;
+ &lt;li&gt;raynau_q --&amp;gt; nivaul_s&amp;nbsp;: « Si tu lis trop vite, tu vas manquer des fautes. » &lt;br /&gt;nivaul_s --&amp;gt; raynau_q&amp;nbsp;: « Euh ouais, surtout si je lis en chantant. »&lt;/li&gt;
+ &lt;li&gt;raynau_q --&amp;gt; nivaul_s&amp;nbsp;: « J'aime bien le féminin, pour moi le féminin devrait l'emporter. »&lt;br /&gt;nivaul_s --&amp;gt; Epi3D&amp;nbsp;: « Il se sent un peu féminin sur les bords. &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:-)&quot; /&gt; »&lt;/li&gt;
+ &lt;li&gt;raynau_q --&amp;gt; nivaul_s&amp;nbsp;: « Je ne sais pas comment on est censé lire ça. » &lt;br /&gt;nivaul_s --&amp;gt; raynau_q&amp;nbsp;: « Avec un espace. »&lt;/li&gt;
+ &lt;li&gt;Shadok --&amp;gt; Pour qu'il y ait le moins de mécontents possibles, il faut toujours taper sur les mêmes.&lt;/li&gt;
+ &lt;li&gt;Shadok --&amp;gt; S'il n'y a pas de solutions c'est qu'il n'y a pas de problèmes.&lt;/li&gt;
+ &lt;li&gt;Shadok --&amp;gt; Il vaut mieux mobiliser son intelligence sur des conneries que de mobiliser sa connerie sur des choses intelligentes.&lt;/li&gt;
+ &lt;li&gt;Shadok --&amp;gt; En essayant continuellement on finit par réussir. Donc&amp;nbsp;: plus ça rate, plus on a de chances que ça marche.&lt;/li&gt;
+ &lt;li&gt;schiaf_c&amp;nbsp;: « Quand on a un problème de disque dur, on le formatte et ensuite on en achète un autre... »&lt;/li&gt;
+ &lt;li&gt;nivaul_s --&amp;gt; raynau_q&amp;nbsp;: &amp;quot;Fait chier ça marche&amp;quot;&lt;/li&gt;
+ &lt;li&gt;nivaul_s -&amp;gt; raynau_q (MSN)&amp;nbsp;: &amp;quot;Fais chier ça marche... Mais pas complètement...&amp;quot;&lt;/li&gt;
+ &lt;li&gt;raynau_q&amp;nbsp;: « J'ai découvert que c'était aussi possible d'envoyer des torchons numériques. »&lt;/li&gt;
+ &lt;li&gt;raynau_q&amp;nbsp;: « g encore des conneries à faire »&lt;/li&gt;
+ &lt;li&gt;nivaul_s --&amp;gt; queze_f&amp;nbsp;: « Les niveaux de détails on les ajoute à la main... »&lt;/li&gt;
+ &lt;li&gt;queze_f --&amp;gt; raynau_q&amp;nbsp;: « C'est déclaré&amp;nbsp;! t'avais qu'à pas te sauver, t'es un boulet. »&lt;/li&gt;
+ &lt;li&gt;nivaul_s --&amp;gt; raynau_q&amp;nbsp;: « Correction d'un bug sur l'émancipation de la mémoire ... ça c'est quand j'en ai marre. »&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Et les moustaches alors ?</title>
+    <link>http://blog.queze.net/post/2006/06/13/Et-les-moustaches-alors</link>
+    <guid isPermaLink="false">urn:md5:d880353a3c64a7f682a5fbdf66b67ae8</guid>
+    <pubDate>Tue, 13 Jun 2006 00:12:15 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;&lt;acronym title=&quot;42 Grammes de Loréal (parce que je le... non rien)&quot;&gt;42GL&lt;/acronym&gt; est innovant, vous l'avez sans doute déjà constaté si vous êtes un habitué. Cette fois encore, nous vous proposons une fonction que vous ne pourrez trouver dans aucune autre bibliothèque graphique.&lt;/p&gt;
+&lt;p&gt;Nous avons constaté qu'une caractéristique essentielle d'un homme est (de pouvoir) avoir une moustache. Or, 42GL doit permettre de travailler avec des objets 3D représentant des hommes, il nous a donc été indispensable de gérer les moustaches.&lt;/p&gt;
+&lt;p&gt;Une fois de plus, nous avons repoussé les limites et nous avons implémenté une fonction universelle pour la gestion des moustaches. Cette fonction peut être appliquée à n'importe quel objet. C'est donc non sans fierté que nous vous présentons la fonction &lt;code&gt;toMoustachu&lt;/code&gt; dont l'image suivante vous donnera une idée de l'effet sur un objet quelconque&amp;nbsp;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://blog.queze.net/pict/42gltoMoustachu.png&quot; alt=&quot;Hélicoptère avec des moustaches&quot; /&gt;&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Faire fortune rapidement...</title>
+    <link>http://blog.queze.net/post/2006/06/12/Faire-fortune-rapidement...</link>
+    <guid isPermaLink="false">urn:md5:df6f46b110edf9344a3517b7a90f0b11</guid>
+    <pubDate>Mon, 12 Jun 2006 21:51:56 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;&lt;acronym title=&quot;42GLandeurs&quot;&gt;42GL&lt;/acronym&gt; et votre fortune est faite&amp;nbsp;! Vous n'ignorez sans doute pas que de nombreux tableaux d'art abstrait se vendent à prix d'or. Ce post a pour but de vous montrer à quel point notre éditeur pourra vous aider.&lt;/p&gt;
+&lt;p&gt;Méthode&amp;nbsp;:&lt;/p&gt;
+&lt;ul&gt;
+ &lt;li&gt;Télécharger sur internet quelques fichiers .3ds (google est votre ami).&lt;/li&gt;
+ &lt;li&gt;Télécharger notre éditeur (très bientôt disponible en version finale sur www.42gl.info&lt;/li&gt;
+ &lt;li&gt;Ouvrez notre éditeur et chargez vos objets 3D en quelques clics.&lt;/li&gt;
+ &lt;li&gt;Admirez le résultat (vous pouvez éventuellement chatouiller quelques réglage  afin que le rendu final ressemble encore moins à vos objets initiaux, mais généralement il est possible de s'en passer.&lt;/li&gt;
+ &lt;li&gt;Faites une copie d'écran et vendez votre nouveau chef-d'&amp;oelig;uvre.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Je vous propose gratuitement de voir une &amp;oelig;uvre obtenue grâce à cette technique&amp;nbsp;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://blog.queze.net/pict/42gl-abstrait1.png&quot; alt=&quot;Du pur art abstrait&amp;nbsp;!&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;42GL a une fois de plus innové en repoussant un peu plus les limites de la création assistée par ordinateur.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;PS&amp;nbsp;: Je ne sais absolument pas comment j'ai fait pour obtenir cet affichage, ce qui en fait donc une &amp;oelig;uvre unique et inestimable &lt;img src=&quot;http://blog.queze.net/smileys/clin_d'oeil.png&quot; alt=&quot;;-)&quot; /&gt;.&lt;/em&gt;&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Et les hérissons alors ?</title>
+    <link>http://blog.queze.net/post/2006/06/06/Et-les-h%C3%A9rissons-alors</link>
+    <guid isPermaLink="false">urn:md5:bf10afac2e6da79d1a3ff290d2390a83</guid>
+    <pubDate>Tue, 06 Jun 2006 19:25:16 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;&lt;acronym title=&quot;42 Geeks en Liberté&quot;&gt;42GL&lt;/acronym&gt; devant inclure des fonctions révolutionnaires, nous venons d'ajouter une fonction d'un nouveau genre. Cette fonction, j'en suis certain, vous paraîtra au premier abord d'une utilité douteuse, mais je pense que les copies d'écran suivantes vous convaincrons. Il s'agit, je ne vais pas vous faire languir plus longtemps, de la fonction &lt;code&gt;toHerisson&lt;/code&gt;. Cette fonction prend un objet 42gl en paramètre, et le transforme en hérisson.&lt;/p&gt;
+&lt;p&gt;Prenons un exemple, voici un objet chargé dans notre éditeur&amp;nbsp;:&lt;br /&gt;
+&lt;img src=&quot;http://blog.queze.net/pict/tHerisson1.png&quot; alt=&quot;Un petit personnage en 3D&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Voici maintenant le résultat obtenu&amp;nbsp;:&lt;br /&gt;
+&lt;img src=&quot;http://blog.queze.net/pict/tHerisson2.png&quot; alt=&quot;Un superbe hérisson&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Vous l'aurez probablement compris en regardant les captures, il s'agit en fait tout simplement de l'affichage des normales des faces, dont nous vous annonçons avec joie qu'il est à présent fonctionnel dans 42GL.&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>42 GL et les normales :-)</title>
+    <link>http://blog.queze.net/post/2006/06/04/42-GL-et-les-normales-%3A-%29</link>
+    <guid isPermaLink="false">urn:md5:dac3ae8ac05cb4ec7652d98cd41b8d46</guid>
+    <pubDate>Sun, 04 Jun 2006 22:39:59 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;&lt;acronym title=&quot;42 Great Leaks&quot;&gt;42GL&lt;/acronym&gt; étant un moteur 3D optimisé, il lui est indispensable de procéder au calcul des normales des faces des objets fermés afin de ne pas afficher les faces qui sont dans un sens ne permettant pas de les voir sur l'écran. Voici donc le résultat lorsque nous affichons les normales des faces d'un cube&amp;nbsp;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://blog.queze.net/pict/42gl_normalize.png&quot; alt=&quot;Normales affichées dans n'importe quelles directions sur les faces d'un cube&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;La soutenance finale approchant, nous aurons de plus en plus souvent l'occasion de vous faire profiter en avant-première des innovation apportées par 42GL au monde de la 3D &lt;img src=&quot;http://blog.queze.net/smileys/clin_d'oeil.png&quot; alt=&quot;;-)&quot; /&gt;.&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>toFunObject 2 :-)</title>
+    <link>http://blog.queze.net/post/2006/04/19/toFunObject-2-%3A-%29</link>
+    <guid isPermaLink="false">urn:md5:1b7cc4b84c340946ec997a8d31a27140</guid>
+    <pubDate>Wed, 19 Apr 2006 09:06:08 +0200</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;&lt;acronym title=&quot;42 Gros Lags&quot;&gt;42GL&lt;/acronym&gt; poursuivant son chemin dans l'élaboration d'un moteur 3D révolutionnaire, nous avons une fois de plus le plaisir de vous présenter une fonction hors du commun. Pour conserver la confidentialité de la chose, nous ne révèlerons pas le vrai nom de cette fonction, mais nous contenterons de son nom de code&amp;nbsp;: toFunObject2.&lt;/p&gt;
+&lt;p&gt;Partant du constat que 3DSMax exporte des fichiers .3ds pourris où certains points sont en double, il est apparut nécessaire de réaliser une fonction permettant d'optimiser les objets ainsi importés. La fonction d'une toute nouvelle génération dont nous vous parlons a donc pour but de fusionner les points ayant les mêmes coordonnés, afin de simplifier l'objet.&lt;/p&gt;
+&lt;p&gt;Voici, en avant première, un aperçu de l'objet résultant de ce traitement&amp;nbsp;:&lt;br /&gt;&lt;img src=&quot;http://blog.queze.net/pict/tofunobject2.png&quot; alt=&quot;funObject2&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Enjoy, et rendez vous à la prochaine soutenance pour une nouvelle fonction hors du commun &lt;img src=&quot;http://blog.queze.net/smileys/clin_d'oeil.png&quot; alt=&quot;;-)&quot; /&gt;.&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Affichage d'une scène de 3 objets</title>
+    <link>http://blog.queze.net/post/2006/02/24/Affichage-d-une-sc%C3%A8ne-de-3-objets</link>
+    <guid isPermaLink="false">urn:md5:bf58a6b6a7db93530440600a39cd6213</guid>
+    <pubDate>Fri, 24 Feb 2006 21:07:04 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;La version de l'éditeur de 42gl présentée à la deuxième soutenance permet l'affichage de plusieurs objets et de redimensionner les objets les uns par rapport aux autres&amp;nbsp;:&lt;br /&gt;&lt;img src=&quot;http://blog.queze.net/pict/editeur_sout2_4.png&quot; alt=&quot;Hélicoptère avec un personnage sur le «toit» d'une tour Eiffel&quot; /&gt;&lt;/p&gt;
+</description>
+  </item>
+
+  <item>
+    <title>Nouvelle fonction dans 42gl</title>
+    <link>http://blog.queze.net/post/2006/02/23/Nouvelle-fonction-dans-42gl</link>
+    <guid isPermaLink="false">urn:md5:86d929f7380aa1d368e933f60b39cd69</guid>
+    <pubDate>Thu, 23 Feb 2006 13:59:16 +0100</pubDate>
+    <dc:creator>Florian Quèze</dc:creator>
+    <category>42gl</category>
+    <description>    
+   &lt;p&gt;Nous venons d'implémenter une fonction du plus haut intérêt pour notre &lt;a href=&quot;http://www.42gl.info&quot;&gt;projet 42gl&lt;/a&gt;. Il s'agit de la fonction &lt;code&gt;int c_structure42gl::toFunObject(float)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Spécifications&amp;nbsp;: la fonction prend en paramètre un flottant inutile et retourne la partie entière de ce flottant. L'objet est converti en « Fun Object ©42gl »&lt;/p&gt;
+&lt;p&gt;Voici quelques captures des objets obtenus&amp;nbsp;:&lt;br /&gt;
+&lt;img src=&quot;http://blog.queze.net/pict/editeur_tofunobject.png&quot; alt=&quot;Hélicoptère&quot; /&gt;&lt;br /&gt;
+&lt;img src=&quot;http://blog.queze.net/pict/editeur_tofunobject1.png&quot; alt=&quot;Tour Eiffel et hélicoptère&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;Cette magnifique fonction a été conçue par Simon &lt;img src=&quot;http://blog.queze.net/smileys/sourire.png&quot; alt=&quot;:-)&quot; /&gt;.&lt;/p&gt;
+</description>
+  </item>
+
+</channel>
+</rss>

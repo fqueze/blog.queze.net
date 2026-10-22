@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="INDEX, FOLLOW" />
+
+  <title>Catching flickering regressions - Florian Quèze</title>
+
+  <meta name="description" lang="en" content="For Firefox 57, as part of the Photon Performance project, one of the
+things we worked on was dramatically reducing flickering in the main
+browser window. We focused especially" />
+  <meta name="date" scheme="W3CDTF" content="2017-12-05T20:47:00+01:00" />
+
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="prev" href="/post/2017/10/18/Thunderbird-is-the-next-version-of-Instantbird"
+  title="Thunderbird is the next version of Instantbird" />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="dc-post">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">Florian Quèze</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+
+  <p id="navlinks">
+  <a href="/post/2017/10/18/Thunderbird-is-the-next-version-of-Instantbird"
+  title="Thunderbird is the next version of Instantbird" class="prev">&#171; Thunderbird is the next version of Instantbird</a>
+  
+  </p>
+
+  <div id="p140" class="post">
+    <h2 class="post-title">Catching flickering regressions</h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Tuesday, December  5 2017, 20:47
+    - <a href="/category/Mozilla">Mozilla</a>
+    - <a href="/post/2017/12/05/Catching-flickering-regressions">Permalink</a>
+    </p>
+
+    <ul class="post-tags">
+    <li><a href="/tag/performance" rel="tag">performance</a></li>
+    </ul>
+
+    <div class="post-content"><p>For Firefox 57, as part of the Photon Performance project, one of the
+things we worked on was dramatically reducing flickering in the main
+browser window. We focused especially on what happens when opening the
+first browser window during startup, and when opening new browser
+windows.<br /><br />To identify bugs, we <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1372518#c0" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1372518%23c0&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNGmtWyKTq358nomUf_azbiQZPlKng">looked frame by frame at video recordings</a>.
+This was good enough to file bugs for an initial exploration, but was
+time consuming, and won't help us to keep these interactions flicker
+free going forward.<br /><br />I'm happy to announce that these two
+interactions are now covered by automated flickering tests that will
+catch any regression there:<br /><a href="https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_startup_flicker.js&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNEVtLKbH5HRh1TQq3LB7ev-6Vcx8Q">https://searchfox.org/mozilla-<wbr>central/source/browser/base/co<wbr>ntent/test/performance/browser<wbr>_startup_flicker.js</a><br /><a href="https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://searchfox.org/mozilla-central/source/browser/base/content/test/performance/browser_windowopen_flicker.js&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNGqEpUmnoTJ-gr-8V1DbkCqhwIqzQ">https://searchfox.org/mozilla-<wbr>central/source/browser/base/co<wbr>ntent/test/performance/browser<wbr>_windowopen_flicker.js</a><br /><br />These tests currently contain whitelists of known bugs (blocking <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1421456" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://bugzilla.mozilla.org/show_bug.cgi?id%3D1421456&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNEogQEuEbaHV7CgJU5AiOeB2146zw">bug 1421456</a>).</p>
+Here is how these tests work:<br /><ul><li>as soon as the window we care about is created, we add a MozAfterPaint event listener to it.</li>
+<li>for each received MozAfterPaint event, we capture a screenshot of the window using <a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawWindow&amp;source=gmail&amp;ust=1512589545257000&amp;usg=AFQjCNF4_r45yxxCGeu1Bq4Cevns0REsGg">CanvasRenderingContext2D.drawW<wbr>indow()</a>.</li>
+<li>remove the event listener after the window is done loading and after several Services.tm.idleDispatchToMain<wbr>Thread callbacks to ensure that the window has settled.</li>
+<li>compare the pixel data of each of the captured frames to identify areas that have changed.</li>
+<li>for changed areas, see if they are whitelisted, if not make the test
+fail and dump base64 encoded data urls of the before/after screenshots,
+so that the test failure can be visually debugged.</li>
+</ul><div dir="ltr">We
+currently cover only the startup and window opening cases, but I expect
+us to add similar tests to more areas in the future. Each time we spend
+effort reducing flickering in some area of our UI, we should add tests
+for it to prevent regression.</div></div>
+  </div>
+
+  
+
+
+  </div>
+</div> <!-- End #main -->
+
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="blog.queze.net" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul><li class="topnav-home"><a href="/">Home</a><span> - </span></li><li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2><ul><li class="category-current"><a href="/category/Mozilla">Mozilla</a></li><li><a href="/category/Voitures-anciennes">Voitures anciennes</a><ul><li><a href="/category/Voitures-anciennes/Ami-6">Ami 6</a></li></ul></li><li><a href="/category/Divers">Divers</a></li></ul></div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    
+  </div> <!-- End #blogextra -->
+</div>
+
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© 2005-2017 Florian Quèze</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>
