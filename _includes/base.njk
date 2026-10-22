@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ site.lang }}" lang="{{ site.lang }}">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="ROBOTS" content="{% block robots %}INDEX, FOLLOW{% endblock %}" />
+
+  <title>{% block title %}{{ site.name }}{% endblock %}</title>
+{% block head %}{% endblock %}
+  <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
+  <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+</head>
+
+<body class="{% block bodyClass %}{% endblock %}">
+<div id="page">
+<div id="top">
+  <h1><span><a href="/">{{ site.name }}</a></span></h1>
+</div>
+
+<p id="prelude"><a href="#main">To content</a> |
+<a href="#blognav">To menu</a> |
+<a href="#search">To search</a></p>
+
+<div id="wrapper">
+
+<div id="main">
+  <div id="content">
+{% block content %}{% endblock %}
+  </div>
+</div> <!-- End #main -->
+
+{% include "sidebar.njk" %}
+
+</div> <!-- End #wrapper -->
+
+<div id="footer">
+  <p>© {{ collections.blog.firstYear }}-{{ collections.blog.lastYear }} {{ site.author.name }}</p>
+</div>
+</div> <!-- End #page -->
+</body>
+</html>

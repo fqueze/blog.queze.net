@@ -1,0 +1,60 @@
+{#- Layout of posts/*.md -#}
+{% extends "base.njk" %}
+{% set post = collections.blog.byInputPath[page.inputPath] %}
+{% block title %}{{ post.title }} - {{ site.name }}{% endblock %}
+{% block head %}
+  <meta name="description" lang="{{ post.lang }}" content="{{ post.description }}" />
+  <meta name="date" scheme="W3CDTF" content="{{ post.iso }}" />
+
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+{% if post.next %}  <link rel="next" href="{{ post.next.path }}"
+  title="{{ post.next.title }}" />
+{% endif %}{% if post.prev %}  <link rel="prev" href="{{ post.prev.path }}"
+  title="{{ post.prev.title }}" />
+{% endif %}  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+{% endblock %}
+{% block bodyClass %}dc-post{% endblock %}
+{% block content %}
+  <p id="navlinks">
+  {% if post.prev %}<a href="{{ post.prev.path }}"
+  title="{{ post.prev.title }}" class="prev">&#171; {{ post.prev.title | xml | cutString(50) | safe }}</a>{% endif %}
+  {% if post.next %} <span>-</span> <a href="{{ post.next.path }}"
+  title="{{ post.next.title }}" class="next">{{ post.next.title | xml | cutString(50) | safe }} &#187;</a>{% endif %}
+  </p>
+
+  <div id="p{{ post.id }}" class="post">
+    <h2 class="post-title">{{ post.title }}</h2>
+
+    <p class="post-info">By {% if post.authorUrl %}<a href="{{ post.authorUrl }}">{{ post.author }}</a>{% else %}{{ post.author }}{% endif %}
+    on {{ post.date }}, {{ post.time }}
+    {% if post.category %}- <a href="{{ post.category.path }}">{{ post.category.title }}</a>{% endif %}
+    - <a href="{{ post.path }}">Permalink</a>
+    </p>
+
+    {% if post.tags.length %}<ul class="post-tags">{% for t in post.tags %}
+    <li><a href="{{ t.path }}" rel="tag">{{ t.name }}</a></li>{% endfor %}
+    </ul>{% endif %}
+
+    <div class="post-content">{{ content | safe }}</div>
+  </div>
+
+  {% if post.showComments and post.comments.length %}
+  <div id="comments">
+    <h3>Comments</h3>
+  <dl>
+  {% for c in post.comments %}
+    <dt id="c{{ c.id }}" class="{{ c.classes }}"><a
+    href="#c{{ c.id }}" class="comment-number">{{ loop.index }}.</a>
+    On {{ c.date }}, {{ c.time }}
+    by {{ c.authorLink | safe }}</dt>
+
+    <dd class="{{ c.classes }}">
+    {{ c.content | safe }}
+    </dd>
+  {% endfor %}
+  </dl>
+  </div>
+  {% endif %}
+
+{% endblock %}

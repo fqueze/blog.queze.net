@@ -1,0 +1,26 @@
+---
+permalink: archive.html
+---
+{% extends "base.njk" %}
+{% block title %}Archives - {{ site.name }}{% endblock %}
+{% block head %}
+  <link rel="top" href="/" title="Home" />
+  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+{% endblock %}
+{% block bodyClass %}dc-archive{% endblock %}
+{% block content %}
+  <div id="content-info">
+    <h2>Archives</h2>
+  </div>
+
+  <div class="content-inner">
+  {% for y in collections.blog.years %}
+    <h3>{{ y.year }}</h3>
+    <ul>
+    {% for m in y.months %}<li><a href="{{ m.path }}"
+    title="{{ m.label }}">{{ m.monthName }}</a>
+    ({{ m.posts.length }})</li>
+    {% endfor %}</ul>
+  {% endfor %}
+  </div>
+{% endblock %}

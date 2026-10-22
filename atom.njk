@@ -1,0 +1,38 @@
+---
+pagination:
+  data: collections.blog.feeds
+  size: 1
+  alias: feed
+permalink: "{{ feed.path | decodeURI }}/atom"
+eleventyAllowMissingExtension: true
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xml:lang="{{ site.lang }}">
+
+  <title type="html">{{ site.name | xml | safe }}{{ feed.subtitle | xml | safe }}</title>
+  <subtitle type="html">{{ site.description | xml | safe }}</subtitle>
+  <link href="{{ site.url }}{{ feed.path }}/atom" rel="self" type="application/atom+xml"/>
+  <link href="{{ site.url }}/" rel="alternate" type="text/html"
+  title="{{ site.description | xml | safe }}"/>
+  <updated>{{ collections.blog.updated }}</updated>
+  <author>
+    <name></name>
+  </author>
+  <id>{{ site.feedId }}</id>
+{% for p in feed.posts %}
+  <entry>
+    <title>{{ p.title | xml | safe }}</title>
+    <link href="{{ p.absUrl }}" rel="alternate" type="text/html"
+    title="{{ p.title | xml | safe }}" />
+    <id>{{ p.guid }}</id>
+    <published>{{ p.iso }}</published>
+    <updated>{{ p.updated }}</updated>
+    <author><name>{{ p.author | xml | safe }}</name></author>
+    {% if p.category %}<dc:subject>{{ p.category.title | xml | safe }}</dc:subject>
+    {% endif %}{% for t in p.tags %}<dc:subject>{{ t.name | xml | safe }}</dc:subject>{% endfor %}
+    <content type="html">{{ p.feedContent | xml | safe }}</content>
+  </entry>
+{% endfor %}
+</feed>

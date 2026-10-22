@@ -1,0 +1,13 @@
+{
+  "name": "blog.queze.net",
+  "private": true,
+  "description": "Florian Quèze's blog",
+  "type": "module",
+  "scripts": {
+    "build": "eleventy --quiet",
+    "serve": "eleventy --serve"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2"
+  }
+}

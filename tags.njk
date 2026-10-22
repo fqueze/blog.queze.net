@@ -1,0 +1,23 @@
+---
+permalink: tags.html
+---
+{% extends "base.njk" %}
+{% block robots %}NOINDEX, FOLLOW{% endblock %}
+{% block title %}Tags - {{ site.name }}{% endblock %}
+{% block head %}
+  <link rel="top" href="/" title="Home" />
+  <link rel="contents" href="/archive" title="Archives" />
+  <link rel="meta" type="application/xbel+xml" title="Blogroll" href="/xbel" />
+{% endblock %}
+{% block bodyClass %}dc-tags{% endblock %}
+{% block content %}
+  <div id="content-info">
+    <h2>Tags</h2>
+  </div>
+
+  <div class="content-inner">
+  <ul class="tags">
+  {% for t in collections.blog.tags %}<li><a href="{{ t.path }}" class="tag{{ t.percent }}">{{ t.name }}</a></li>
+  {% endfor %}</ul>
+  </div>
+{% endblock %}

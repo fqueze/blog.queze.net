@@ -1,0 +1,33 @@
+{#- Post listing shared by home, category and tag pages. -#}
+{% for e in list.entries %}{% set p = e.post %}
+    <div id="p{{ p.id }}" class="post {{ e.classes }}" lang="{{ p.lang }}" xml:lang="{{ p.lang }}">
+    {% if e.newDay %}<p class="day-date">{{ p.date }}</p>{% endif %}
+
+    <h2 class="post-title"><a
+    href="{{ p.path }}">{{ p.title }}</a></h2>
+
+    <p class="post-info">By {% if p.authorUrl %}<a href="{{ p.authorUrl }}">{{ p.author }}</a>{% else %}{{ p.author }}{% endif %}
+    on {{ p.date }}, {{ p.time }}
+    {% if p.category and list.kind != 'category' %}- <a href="{{ p.category.path }}">{{ p.category.title }}</a>{% endif %}
+    </p>
+
+    {% if p.tags.length %}<ul class="post-tags">{% for t in p.tags %}
+    <li><a href="{{ t.path }}">{{ t.name }}</a></li>{% endfor %}
+    </ul>{% endif %}
+
+    <div class="post-content">{{ p.content | safe }}</div>
+
+    {% if p.showComments %}
+      <p class="post-info-co">
+      <a href="{{ p.path }}#comments" class="comment_count">{{ p.commentCount }}</a>
+      </p>
+    {% endif %}
+    </div>
+{% endfor %}
+{% if list.pages > 1 %}
+    <p class="pagination">{% if list.prevPage %}<a href="{{ list.prevPage }}" class="prev">&#171;
+    previous entries</a> - {% endif %}
+    page {{ list.page }} of {{ list.pages }}
+    {% if list.nextPage %} - <a href="{{ list.nextPage }}" class="next">next entries
+    &#187;</a>{% endif %}</p>
+{% endif %}

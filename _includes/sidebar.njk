@@ -1,0 +1,15 @@
+{%- set isHome = list and list.kind == 'home' and list.page == 1 -%}
+{%- if list and list.category %}{% set currentCat = list.category.url %}
+{%- elif post and post.category %}{% set currentCat = post.category.url %}{% endif -%}
+{%- macro catList(nodes) -%}
+<ul>{% for n in nodes %}<li{% if currentCat and n.cat.url == currentCat %} class="category-current"{% endif %}><a href="{{ n.cat.path }}">{{ n.cat.title }}</a>{% if n.children.length %}{{ catList(n.children) }}{% endif %}</li>{% endfor %}</ul>
+{%- endmacro -%}
+<div id="sidebar">
+  <div id="blognav">
+    <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="{{ site.host }}" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul>{% if not isHome %}<li class="topnav-home"><a href="/">Home</a><span> - </span></li>{% endif %}<li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2>{{ catList(collections.blog.catTree) }}</div>
+  </div> <!-- End #blognav -->
+
+  <div id="blogextra">
+    {% if isHome %}<div class="syndicate"><h2>Subscribe</h2><ul><li><a type="application/atom+xml" href="/feed/atom" title="This blog's entries Atom feed" class="feed">Entries feed</a></li></ul></div>{% endif %}
+  </div> <!-- End #blogextra -->
+</div>

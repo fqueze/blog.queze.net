@@ -1,0 +1,46 @@
+---
+pagination:
+  data: collections.blog.months
+  size: 1
+  alias: month
+permalink: "{{ month.path | htmlFile }}"
+---
+{% extends "base.njk" %}
+{% block robots %}NOINDEX, FOLLOW{% endblock %}
+{% block title %}Archives - {{ month.label }} - {{ site.name }}{% endblock %}
+{% block head %}
+  <link rel="top" href="/" title="Home" />
+  <link rel="up" href="/archive" title="Archives" />
+  <link rel="contents" href="/archive" title="Archives" />
+{% if month.next %}  <link rel="next" href="{{ month.next.path }}"
+  title="{{ month.next.label }}" />
+{% endif %}{% if month.prev %}  <link rel="prev" href="{{ month.prev.path }}"
+  title="{{ month.prev.label }}" />
+{% endif %}  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="/feed/atom" />
+{% endblock %}
+{% block bodyClass %}dc-archive-month{% endblock %}
+{% block content %}
+  <p id="navlinks">
+  {% if month.prev %}<a href="{{ month.prev.path }}" class="prev">&#171; {{ month.prev.label }}</a>
+  - {% endif %}
+  <a href="/archive">Archives</a>
+  {% if month.next %} - <a href="{{ month.next.path }}" class="next">{{ month.next.label }} &#187;</a>{% endif %}
+  </p>
+
+  <div id="content-info">
+    <h2>{{ month.label }}</h2>
+  </div>
+
+  <div class="content-inner">
+  {% for e in month.entries %}{% set p = e.post %}
+    {% if e.newDay %}<p class="day-date">{{ p.date }}</p>{% endif %}
+
+    <h2 id="p{{ p.id }}" class="post-title" lang="{{ p.lang }}" xml:lang="{{ p.lang }}"><a
+    href="{{ p.path }}" title="Read {{ p.title }}">{{ p.title }}</a></h2>
+
+    <p class="post-info">By {% if p.authorUrl %}<a href="{{ p.authorUrl }}">{{ p.author }}</a>{% else %}{{ p.author }}{% endif %}
+    {% if p.showComments %}- <a href="{{ p.path }}#comments">{{ p.commentCount }}</a>{% endif %}
+    </p>
+  {% endfor %}
+  </div>
+{% endblock %}

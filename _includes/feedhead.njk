@@ -1,0 +1,3 @@
+{% if list.prevPage %}  <link rel="prev" title="previous entries" href="{{ list.prevPage }}" />
+{% endif %}{% if list.nextPage %}  <link rel="next" title="next entries" href="{{ list.nextPage }}" />
+{% endif %}  <link rel="alternate" type="application/atom+xml" title="Atom 1.0" href="{{ list.feed }}" />

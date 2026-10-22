@@ -1,0 +1,54 @@
+---
+pagination:
+  data: collections.blog.lists
+  size: 1
+  alias: list
+permalink: "{{ list.path | htmlFile }}"
+---
+{% extends "base.njk" %}
+{%- set suffix = (' - page ' + list.page) if list.page > 1 else '' -%}
+{% block robots %}{{ 'NOINDEX, FOLLOW' if list.kind == 'category' else 'INDEX, FOLLOW' }}{% endblock %}
+{% block title -%}
+{%- if list.kind == 'category' %}{{ list.category.title }} - {{ site.name }}{{ suffix }}
+{%- elif list.kind == 'tag' %}Tag - {{ list.tag.name }} - {{ site.name }}{{ suffix }}
+{%- else %}{{ site.name }}{{ suffix }}{% endif -%}
+{%- endblock %}
+{% block head %}
+{%- if list.kind == 'home' %}  <meta name="description" lang="{{ site.lang }}" content="{{ site.description }}{{ suffix }}" />
+{% elif list.kind == 'category' %}  <meta name="description" lang="{{ site.lang }}" content="{{ list.category.desc | striptags }}" />
+{% endif -%}
+{% if list.kind != 'home' %}  <link rel="top" href="/" title="Home" />
+{% endif %}  <link rel="contents" href="/archive" title="Archives" />
+{% include "feedhead.njk" %}
+{%- if list.kind != 'category' %}  <link rel="meta" type="application/xbel+xml" title="Blogroll" href="/xbel" />
+{% endif %}
+{%- endblock %}
+{% block bodyClass %}dc-{{ list.kind }}{% endblock %}
+{% block content %}
+{%- if list.kind == 'category' %}{% set c = list.category %}
+  <div id="content-info">
+    <h2>{% for parent in c.parents %}<a href="{{ parent.path }}">{{ parent.title }}</a> &rsaquo; {% endfor %}
+    {{ c.title }}</h2>
+    {{ c.desc | safe }}
+
+    <p><a type="application/atom+xml" href="{{ list.feed }}"
+    title="This category's entries Atom feed" class="feed">Entries feed</a></p>
+  </div>
+  {% if c.children.length %}
+  <div id="subcategories">
+  <h3>Subcategories</h3>
+  <ul>
+  {% for child in c.children %}<li><a href="{{ child.path }}">{{ child.title }}</a></li>
+  {% endfor %}</ul>
+  </div>
+  {% endif %}
+{%- elif list.kind == 'tag' %}
+  <div id="content-info">
+    <h2>Tag - {{ list.tag.name }}</h2>
+
+    <p><a type="application/atom+xml" href="{{ list.feed }}"
+    title="This tag's entries Atom feed" class="feed">Entries feed</a></p>
+  </div>
+{%- endif %}
+{% include "entries.njk" %}
+{%- endblock %}
