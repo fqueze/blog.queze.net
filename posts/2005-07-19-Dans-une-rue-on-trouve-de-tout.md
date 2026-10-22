@@ -11,6 +11,6 @@ templateEngineOverride: html
 ---
 
    <p>Je ne sais pas si c'est comme ça dans toutes les rues, mais en tout cas dans celles d'Ivry il n'est pas très rare de trouver des objets inattendus.</p>
-<p>Voici par exemple la chaise de bureau qui était hier sur le trottoir près du bureau de poste&nbsp;:<br /><img src="http://www.queze.net/pict/chaise.jpg" alt="Chaise de bureau en cuir noir" /></p>
+<p>Voici par exemple la chaise de bureau qui était hier sur le trottoir près du bureau de poste&nbsp;:<br /><img src="/pict/chaise.jpg" alt="Chaise de bureau en cuir noir" /></p>
 <p>Elle n'est que très légèrement abîmée&nbsp;: l'une des 5 roulette est manquante mais cela ne l'empêche pas du tout d'être stable et de rouler très bien ; on voit le bois de l'armature sur les coins. Elle est bien sûr très confortable.</p>
 <p>Juste devant la poste, il y avait aussi un PC plein de boue, ou plutôt ce qu'il en restait&nbsp;: il restait la carcasse, l'alimentation, la carte mère, la mémoire et quelques câbles. J'ai ramassé la mémoire&nbsp;: ça peut toujours servir pour un autre ordinateur. Pour donner une indication de l'âge de l'engin, sur la façade il était écrit "Pentium 133".</p><h3>Edité le 2005-07-19 à 21:42:59.</h3>

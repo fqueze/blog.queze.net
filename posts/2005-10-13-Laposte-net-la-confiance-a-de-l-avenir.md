@@ -11,5 +11,5 @@ http: true
 templateEngineOverride: html
 ---
 
-   <p><img src="http://www.queze.net/pict/poposte.png" alt="message d'erreur nul" /></p>
+   <p><img src="/pict/poposte.png" alt="message d'erreur nul" /></p>
 <p>J'ai juste entré mon login et mon pass sur la page d'accueil. <img src="/smileys/clin_d'oeil.png" alt=";-)" /></p>
