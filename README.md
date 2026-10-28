@@ -50,6 +50,10 @@ The post, in Markdown.
 - `lib/blog.js`, `lib/dotclear.js`: listings, archives, feeds, dates, computed like Dotclear did.
 - `*.njk`, `_includes/`: templates reproducing the Dotclear default theme.
 - `pict/`, `smileys/`, `public/`, `themes/`: media and theme.
+- `_data/floblogRedirects.json`, `floblog-redirects.njk`: redirect pages for the URLs
+  of the older www.queze.net blog that old links use on this site (`/cat10.html`,
+  `/a29-….html`…). The mapping is a copy of `_data/redirects.json` of the
+  www.queze.net repository.
 - `import/`: Dotclear export and conversion to `posts/`, and `floblog.mjs` importing
   the www.queze.net posts that weren't in Dotclear (not used by the build).
 - `tools/compare.mjs [http://old-blog]`: crawl the old blog and `_site/`, and report
