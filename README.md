@@ -37,6 +37,11 @@ The post, in Markdown.
 - Imported posts have extra fields: `id` and `guid` (from Dotclear), `http: true`
   (their feed links stay on http:// so that feed readers don't show them again),
   `comments`, and `templateEngineOverride: html` as their body is HTML.
+- `unlisted: true` keeps a post out of the home page, archives, tags, feeds and
+  previous/next links: it's only reachable by its URL and its category page, if
+  that category is also `unlisted` in `_data/site.js` (then not in the sidebar,
+  and without feed). Used by the posts imported from www.queze.net.
+- `author:` replaces the default author (Florian Quèze) on the post.
 
 ## Layout
 
@@ -45,6 +50,7 @@ The post, in Markdown.
 - `lib/blog.js`, `lib/dotclear.js`: listings, archives, feeds, dates, computed like Dotclear did.
 - `*.njk`, `_includes/`: templates reproducing the Dotclear default theme.
 - `pict/`, `smileys/`, `public/`, `themes/`: media and theme.
-- `import/`: Dotclear export and conversion to `posts/` (not used by the build).
+- `import/`: Dotclear export and conversion to `posts/`, and `floblog.mjs` importing
+  the www.queze.net posts that weren't in Dotclear (not used by the build).
 - `tools/compare.mjs [http://old-blog]`: crawl the old blog and `_site/`, and report
   missing URLs and differences in visible text and feed entries.

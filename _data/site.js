@@ -20,10 +20,15 @@ export default {
   postsPerPage: 10,
   postsPerFeed: 20,
   // Categories, in display order. 'url' is used in /category/<url>.
+  // Unlisted categories aren't in the sidebar and have no feed; they are for
+  // unlisted posts (imported from www.queze.net, mostly by other authors).
   categories: [
     { url: 'Mozilla', title: 'Mozilla', desc: '<p>Posts related to Mozilla activities</p>' },
     { url: 'Voitures-anciennes', title: 'Voitures anciennes', desc: '' },
     { url: 'Voitures-anciennes/Ami-6', title: 'Ami 6', desc: '' },
     { url: 'Divers', title: 'Divers', desc: '' },
+    { url: 'LR2T', title: 'LR2T', desc: '<p>Les remarques de Tintin</p>', unlisted: true },
+    { url: 'Images', title: 'Images', desc: '', unlisted: true },
+    { url: 'Romain', title: 'Romain', desc: '<p>Catégorie pour que Rom1 puisse ploukiser ... euh je veux dire poster, en tout indépendance.</p>', unlisted: true },
   ],
 };
