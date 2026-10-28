@@ -1,0 +1,13 @@
+{
+  "//": "Comment IDs hidden from the static site (likely spam), and IDs always shown. See import/floblog.mjs.",
+  "exclude": [
+    8131,
+    8132,
+    12322
+  ],
+  "keep": [
+    8131,
+    8132,
+    12322
+  ]
+}
