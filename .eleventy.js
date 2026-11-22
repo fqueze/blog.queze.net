@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import hljs from 'highlight.js';
 import site from './_data/site.js';
 import { buildBlog } from './lib/blog.js';
 import { draftMiddleware } from './lib/drafts.js';
@@ -10,6 +11,16 @@ export default function (eleventyConfig) {
 
   for (const path of ['pict', 'smileys', 'public', 'themes', 'feed/rss2.xsl', 'CNAME', '.nojekyll'])
     eleventyConfig.addPassthroughCopy(path);
+
+  // Fenced code blocks are highlighted at build time, as in md-viewer; their
+  // 'code' class keeps the look of the <pre> of the imported posts unchanged.
+  eleventyConfig.amendLibrary('md', md => md.set({
+    highlight(code, lang) {
+      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
+      return `<pre class="code"><code class="hljs language-${language}">` +
+             `${hljs.highlight(code, { language }).value}</code></pre>`;
+    },
+  }));
 
   // Everything the listings, archives and feeds need, computed from the posts.
   eleventyConfig.addCollection('blog', api => buildBlog(api.getFilteredByGlob('posts/*.md'), site));

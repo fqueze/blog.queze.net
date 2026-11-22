@@ -1,0 +1,93 @@
+/* Code blocks of Markdown posts, highlighted at build time by highlight.js.
+   Taken from md-viewer's assets/style.css (light colors only, like the theme). */
+
+.post-content pre.code {
+  padding: 1em;
+  overflow: auto;
+  font: 0.87em/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  white-space: pre;
+  word-wrap: normal;
+  color: #1f2328;
+  background: #f6f8fa;
+  border: 1px solid #e4e8ec;
+  border-radius: 8px;
+}
+
+.post-content pre.code code {
+  font: inherit;
+  white-space: inherit;
+}
+
+/* Syntax highlighting */
+
+
+.hljs-comment,
+.hljs-quote {
+  color: #59636e;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-name,
+.hljs-tag {
+  color: #cf222e;
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: #0a3069;
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-type,
+.hljs-params {
+  color: #0550ae;
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-section,
+.hljs-selector-id,
+.hljs-built_in,
+.hljs-class .hljs-title {
+  color: #8250df;
+}
+
+.hljs-attr,
+.hljs-property,
+.hljs-meta,
+.hljs-subst {
+  color: #0969da;
+}
+
+.hljs-deletion {
+  color: #82071e;
+  background: #ffebe9;
+}
+
+.hljs-addition {
+  background: #dafbe1;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
