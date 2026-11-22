@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xml:lang="en">
+
+  <title type="html">Florian Quèze - Tag - debugging</title>
+  <subtitle type="html">Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ...</subtitle>
+  <link href="http://blog.queze.net/feed/tag/debugging/atom" rel="self" type="application/atom+xml"/>
+  <link href="http://blog.queze.net/" rel="alternate" type="text/html"
+  title="Florian Quèze's blog, talking about Mozilla, Instantbird, Summer of Code, Ami 6 cars, ..."/>
+  <updated>2026-11-23T00:03:00+01:00</updated>
+  <author>
+    <name></name>
+  </author>
+  <id>urn:md5:d59fad53f8b1c54effe51c1e5b249670</id>
+
+  <entry>
+    <title>Debugging a Windows crash that left no crash report</title>
+    <link href="https://blog.queze.net/post/2026/11/23/Debugging-a-Windows-crash-that-left-no-crash-report" rel="alternate" type="text/html"
+    title="Debugging a Windows crash that left no crash report" />
+    <id>https://blog.queze.net/post/2026/11/23/Debugging-a-Windows-crash-that-left-no-crash-report</id>
+    <published>2026-11-23T00:03:00+01:00</published>
+    <updated>2026-11-23T00:03:00+01:00</updated>
+    <author><name>Florian Quèze</name></author>
+    <dc:subject>Mozilla</dc:subject>
+    <dc:subject>debugging</dc:subject>
+    <content type="html">    &lt;p&gt;How, without ever starting my Windows laptop, I understood why Firefox crashes on Windows when opening its 500th window. From a crash that left nothing but an exit code to a fix that landed only a few hours later!&lt;/p&gt;
+&lt;h2&gt;The symptom&lt;/h2&gt;
+&lt;p&gt;Two changes landed on the same day: the mochitest harness started to &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=2090907&quot;&gt;fail the running test when the browser exits abnormally without a minidump&lt;/a&gt;, and &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=2092566&quot;&gt;&lt;code&gt;mochitest-browser-chrome-repeat&lt;/code&gt; jobs started running on autoland and mozilla-central&lt;/a&gt;. Together, they made the aiwindow manifest perma-fail on Windows 11 with &amp;quot;application terminated with exit code 3762701893&amp;quot;.&lt;/p&gt;
+&lt;p&gt;No minidump, no stack, nothing else to look at. The only useful observation was that the failure was deterministic: the browser always died at about the same point of the run, after roughly 14 minutes. Something was accumulating.&lt;/p&gt;
+&lt;p&gt;A quick online search gave only one result about this exit code (0xE0464645 in hexadecimal): a &lt;a href=&quot;https://github.com/hajisensai/Fushi/blob/main/docs/bugs/BUG-289-dcomp-compositor-atexit-failfast.md&quot;&gt;bug write-up in Chinese&lt;/a&gt; for another project, analyzing crash dumps with the same exception code. Their stacks show it's raised by &lt;code&gt;CoreMessaging!CFlat::Abandonment::Fail&lt;/code&gt; calling &lt;a href=&quot;https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-raisefailfastexception&quot;&gt;&lt;code&gt;RaiseFailFastException&lt;/code&gt;&lt;/a&gt;, which &amp;quot;bypasses all exception handlers&amp;quot;: this is why our crash reporter never saw anything. A Windows UI component giving up after 14 minutes of tests suggested it was running out of something.&lt;/p&gt;
+&lt;h2&gt;Measuring resources after each test&lt;/h2&gt;
+&lt;p&gt;Finding out what only required adding a few lines to the browser-chrome harness (&lt;code&gt;browser-test.js&lt;/code&gt;) to log, after each test, the parent process's GDI and USER object counts, handle count, and private and committed memory:&lt;/p&gt;
+&lt;pre class=&quot;code&quot;&gt;&lt;code class=&quot;hljs language-js&quot;&gt;&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;hljs-title class_&quot;&gt;GetGuiResources&lt;/span&gt; = user32.&lt;span class=&quot;hljs-title function_&quot;&gt;declare&lt;/span&gt;(
+  &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;GetGuiResources&amp;quot;&lt;/span&gt;,
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;winapi_abi&lt;/span&gt;,
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;uint32_t&lt;/span&gt;,
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;voidptr_t&lt;/span&gt;,
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;uint32_t&lt;/span&gt;
+);
+&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; proc = &lt;span class=&quot;hljs-title class_&quot;&gt;GetCurrentProcess&lt;/span&gt;();
+parts.&lt;span class=&quot;hljs-title function_&quot;&gt;push&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;`gdi &lt;span class=&quot;hljs-subst&quot;&gt;${GetGuiResources(proc, &lt;span class=&quot;hljs-number&quot;&gt;0&lt;/span&gt;)}&lt;/span&gt;`&lt;/span&gt;);
+parts.&lt;span class=&quot;hljs-title function_&quot;&gt;push&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;`gdiPeak &lt;span class=&quot;hljs-subst&quot;&gt;${GetGuiResources(proc, &lt;span class=&quot;hljs-number&quot;&gt;2&lt;/span&gt;)}&lt;/span&gt;`&lt;/span&gt;);
+parts.&lt;span class=&quot;hljs-title function_&quot;&gt;push&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;`user &lt;span class=&quot;hljs-subst&quot;&gt;${GetGuiResources(proc, &lt;span class=&quot;hljs-number&quot;&gt;1&lt;/span&gt;)}&lt;/span&gt;`&lt;/span&gt;);
+parts.&lt;span class=&quot;hljs-title function_&quot;&gt;push&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;`userPeak &lt;span class=&quot;hljs-subst&quot;&gt;${GetGuiResources(proc, &lt;span class=&quot;hljs-number&quot;&gt;4&lt;/span&gt;)}&lt;/span&gt;`&lt;/span&gt;);
+&lt;span class=&quot;hljs-comment&quot;&gt;// ... handle count, private bytes, system commit, kernel pools ...&lt;/span&gt;
+&lt;span class=&quot;hljs-title function_&quot;&gt;dump&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;`DEBUG-RESOURCES | &lt;span class=&quot;hljs-subst&quot;&gt;${parts.join(&lt;span class=&quot;hljs-string&quot;&gt;&amp;quot; | &amp;quot;&lt;/span&gt;)}&lt;/span&gt;\n`&lt;/span&gt;);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Using ctypes means no compilation is needed, so the try pushes could use artifact builds to iterate quickly.&lt;/p&gt;
+&lt;p&gt;The answer was clear: the number of GDI objects climbed steadily from 45 to 9,950–9,999 after the last test that completed, and the peak value reported by Windows was exactly 10,000. 10,000 is the maximum number of GDI objects a Windows process can own. Nothing else was anywhere near a limit.&lt;/p&gt;
+&lt;h2&gt;A smaller test case&lt;/h2&gt;
+&lt;p&gt;The Smart Window tests open and close a lot of windows, about 500 in a single browser session, so opening windows was the obvious suspect. A new test opening and closing 30 browser windows, in its own folder so it can run alone on try and give fast results, confirmed it, and showed the problem had nothing to do with Smart Window: each window leaked about 20 GDI objects, never released, even after memory minimization.&lt;/p&gt;
+&lt;h2&gt;Which objects? Walking the GDI handle table&lt;/h2&gt;
+&lt;p&gt;Again, some help was found on GitHub: a &lt;a href=&quot;https://github.com/Softanics/gdi-leaks&quot;&gt;gdi-leaks&lt;/a&gt; project has code reading the GDI handle table that Windows maps into every process. Still from ctypes, this table can be accessed from an undocumented field (&lt;code&gt;GdiSharedHandleTable&lt;/code&gt;) of a per-process Windows structure, keeping the entries owned by our process, and asking GDI for the type and size of each object:&lt;/p&gt;
+&lt;pre class=&quot;code&quot;&gt;&lt;code class=&quot;hljs language-js&quot;&gt;&lt;span class=&quot;hljs-comment&quot;&gt;// GdiSharedHandleTable, undocumented, at 0xF8 on x64.&lt;/span&gt;
+&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; table = ctypes.&lt;span class=&quot;hljs-title function_&quot;&gt;cast&lt;/span&gt;(
+  ctypes
+    .&lt;span class=&quot;hljs-title function_&quot;&gt;cast&lt;/span&gt;(peb, ctypes.&lt;span class=&quot;hljs-property&quot;&gt;uint8_t&lt;/span&gt;.&lt;span class=&quot;hljs-title function_&quot;&gt;array&lt;/span&gt;(&lt;span class=&quot;hljs-number&quot;&gt;0x100&lt;/span&gt;).&lt;span class=&quot;hljs-property&quot;&gt;ptr&lt;/span&gt;)
+    .&lt;span class=&quot;hljs-property&quot;&gt;contents&lt;/span&gt;.&lt;span class=&quot;hljs-title function_&quot;&gt;addressOfElement&lt;/span&gt;(&lt;span class=&quot;hljs-number&quot;&gt;0xf8&lt;/span&gt;),
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;voidptr_t&lt;/span&gt;.&lt;span class=&quot;hljs-property&quot;&gt;ptr&lt;/span&gt;
+).&lt;span class=&quot;hljs-property&quot;&gt;contents&lt;/span&gt;;
+&lt;span class=&quot;hljs-comment&quot;&gt;// 65536 cells of 24 bytes: kernel pointer, pid, count, upper, type, user&lt;/span&gt;
+&lt;span class=&quot;hljs-comment&quot;&gt;// pointer.&lt;/span&gt;
+&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; cells = ctypes.&lt;span class=&quot;hljs-title function_&quot;&gt;cast&lt;/span&gt;(
+  table,
+  ctypes.&lt;span class=&quot;hljs-property&quot;&gt;uint16_t&lt;/span&gt;.&lt;span class=&quot;hljs-title function_&quot;&gt;array&lt;/span&gt;(&lt;span class=&quot;hljs-number&quot;&gt;65536&lt;/span&gt; * &lt;span class=&quot;hljs-number&quot;&gt;12&lt;/span&gt;).&lt;span class=&quot;hljs-property&quot;&gt;ptr&lt;/span&gt;
+).&lt;span class=&quot;hljs-property&quot;&gt;contents&lt;/span&gt;;
+&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; pid = &lt;span class=&quot;hljs-title class_&quot;&gt;GetCurrentProcessId&lt;/span&gt;() &amp;amp; &lt;span class=&quot;hljs-number&quot;&gt;0xffff&lt;/span&gt;;
+&lt;span class=&quot;hljs-keyword&quot;&gt;for&lt;/span&gt; (&lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; i = &lt;span class=&quot;hljs-number&quot;&gt;0&lt;/span&gt;; i &amp;lt; &lt;span class=&quot;hljs-number&quot;&gt;65536&lt;/span&gt;; i++) {
+  &lt;span class=&quot;hljs-keyword&quot;&gt;if&lt;/span&gt; (cells[i * &lt;span class=&quot;hljs-number&quot;&gt;12&lt;/span&gt; + &lt;span class=&quot;hljs-number&quot;&gt;4&lt;/span&gt;] != pid) {
+    &lt;span class=&quot;hljs-keyword&quot;&gt;continue&lt;/span&gt;;
+  }
+  &lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; handle = ctypes.&lt;span class=&quot;hljs-title function_&quot;&gt;cast&lt;/span&gt;(
+    ctypes.&lt;span class=&quot;hljs-title function_&quot;&gt;uintptr_t&lt;/span&gt;(cells[i * &lt;span class=&quot;hljs-number&quot;&gt;12&lt;/span&gt; + &lt;span class=&quot;hljs-number&quot;&gt;6&lt;/span&gt;] * &lt;span class=&quot;hljs-number&quot;&gt;65536&lt;/span&gt; + i),
+    ctypes.&lt;span class=&quot;hljs-property&quot;&gt;voidptr_t&lt;/span&gt;
+  );
+  &lt;span class=&quot;hljs-keyword&quot;&gt;let&lt;/span&gt; type = &lt;span class=&quot;hljs-variable constant_&quot;&gt;TYPES&lt;/span&gt;[&lt;span class=&quot;hljs-title class_&quot;&gt;GetObjectType&lt;/span&gt;(handle) - &lt;span class=&quot;hljs-number&quot;&gt;1&lt;/span&gt;];
+  &lt;span class=&quot;hljs-keyword&quot;&gt;if&lt;/span&gt; (type == &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;BITMAP&amp;quot;&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;hljs-title class_&quot;&gt;GetObjectW&lt;/span&gt;(handle, &lt;span class=&quot;hljs-variable constant_&quot;&gt;BITMAP&lt;/span&gt;.&lt;span class=&quot;hljs-property&quot;&gt;size&lt;/span&gt;, bitmap.&lt;span class=&quot;hljs-title function_&quot;&gt;address&lt;/span&gt;())) {
+    type += &lt;span class=&quot;hljs-string&quot;&gt;` &lt;span class=&quot;hljs-subst&quot;&gt;${bitmap.bmWidth}&lt;/span&gt;x&lt;span class=&quot;hljs-subst&quot;&gt;${bitmap.bmHeight}&lt;/span&gt;`&lt;/span&gt;;
+  }
+  counts[type] = (counts[type] || &lt;span class=&quot;hljs-number&quot;&gt;0&lt;/span&gt;) + &lt;span class=&quot;hljs-number&quot;&gt;1&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Before and after opening and closing 30 windows, this gives:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;GDI objects&lt;/th&gt;
+&lt;th style=&quot;text-align:right&quot;&gt;Before&lt;/th&gt;
+&lt;th style=&quot;text-align:right&quot;&gt;After 30 windows&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Memory device contexts (DCs)&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;7&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;&lt;strong&gt;303&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bitmaps 64×32&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;3&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;&lt;strong&gt;177&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bitmaps 64×64&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;1&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;&lt;strong&gt;91&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bitmaps 32×32&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;1&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;&lt;strong&gt;33&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Regions&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;8&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;8&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Brushes&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;2&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Fonts&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;2&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Bitmaps 8×8&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;1&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;Total&lt;/strong&gt;&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;43&lt;/td&gt;
+&lt;td style=&quot;text-align:right&quot;&gt;&lt;strong&gt;635&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;So each window leaves behind about 10 memory DCs and 10 small bitmaps of 64×32, 64×64 and 32×32 pixels.&lt;/p&gt;
+&lt;h2&gt;Who allocates them?&lt;/h2&gt;
+&lt;p&gt;Each leaked bitmap comes with a memory DC: that's the pair Windows creates when graphics code asks for a DC to draw with GDI into a GPU surface. With hooks on the native functions that create this pair (&lt;code&gt;NtGdiDdDDICreateDCFromMemory&lt;/code&gt;) and destroy it (&lt;code&gt;NtGdiDdDDIDestroyDCFromMemory&lt;/code&gt;), the Firefox Profiler can record markers with stacks for each call:&lt;/p&gt;
+&lt;pre class=&quot;code&quot;&gt;&lt;code class=&quot;hljs language-cpp&quot;&gt;&lt;span class=&quot;hljs-function&quot;&gt;&lt;span class=&quot;hljs-type&quot;&gt;static&lt;/span&gt; LONG NTAPI &lt;span class=&quot;hljs-title&quot;&gt;CreateHook&lt;/span&gt;&lt;span class=&quot;hljs-params&quot;&gt;(CreateArgs* aArgs)&lt;/span&gt; &lt;/span&gt;{
+  LONG status = &lt;span class=&quot;hljs-built_in&quot;&gt;sCreateStub&lt;/span&gt;(aArgs);
+  &lt;span class=&quot;hljs-keyword&quot;&gt;if&lt;/span&gt; (status &amp;gt;= &lt;span class=&quot;hljs-number&quot;&gt;0&lt;/span&gt;) {
+    &lt;span class=&quot;hljs-built_in&quot;&gt;PROFILER_MARKER_TEXT&lt;/span&gt;(
+        &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;GDI CreateDCFromMemory&amp;quot;&lt;/span&gt;, GRAPHICS, MarkerStack::&lt;span class=&quot;hljs-built_in&quot;&gt;Capture&lt;/span&gt;(),
+        &lt;span class=&quot;hljs-built_in&quot;&gt;nsPrintfCString&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;DC %08x bitmap %08x %ux%u&amp;quot;&lt;/span&gt;, &lt;span class=&quot;hljs-built_in&quot;&gt;Handle&lt;/span&gt;(aArgs-&amp;gt;mDc),
+                        &lt;span class=&quot;hljs-built_in&quot;&gt;Handle&lt;/span&gt;(aArgs-&amp;gt;mBitmap), aArgs-&amp;gt;mWidth,
+                        aArgs-&amp;gt;mHeight));
+  }
+  &lt;span class=&quot;hljs-keyword&quot;&gt;return&lt;/span&gt; status;
+}
+
+&lt;span class=&quot;hljs-function&quot;&gt;&lt;span class=&quot;hljs-type&quot;&gt;static&lt;/span&gt; LONG NTAPI &lt;span class=&quot;hljs-title&quot;&gt;DestroyHook&lt;/span&gt;&lt;span class=&quot;hljs-params&quot;&gt;(&lt;span class=&quot;hljs-type&quot;&gt;const&lt;/span&gt; DestroyArgs* aArgs)&lt;/span&gt; &lt;/span&gt;{
+  &lt;span class=&quot;hljs-built_in&quot;&gt;PROFILER_MARKER_TEXT&lt;/span&gt;(
+      &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;GDI DestroyDCFromMemory&amp;quot;&lt;/span&gt;, GRAPHICS, MarkerStack::&lt;span class=&quot;hljs-built_in&quot;&gt;Capture&lt;/span&gt;(),
+      &lt;span class=&quot;hljs-built_in&quot;&gt;nsPrintfCString&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;DC %08x bitmap %08x&amp;quot;&lt;/span&gt;, &lt;span class=&quot;hljs-built_in&quot;&gt;Handle&lt;/span&gt;(aArgs-&amp;gt;mDc),
+                      &lt;span class=&quot;hljs-built_in&quot;&gt;Handle&lt;/span&gt;(aArgs-&amp;gt;mBitmap)));
+  &lt;span class=&quot;hljs-keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;hljs-built_in&quot;&gt;sDestroyStub&lt;/span&gt;(aArgs);
+}
+
+&lt;span class=&quot;hljs-function&quot;&gt;&lt;span class=&quot;hljs-type&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;hljs-type&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;hljs-title&quot;&gt;Install&lt;/span&gt;&lt;span class=&quot;hljs-params&quot;&gt;()&lt;/span&gt; &lt;/span&gt;{
+  sWin32uIntercept.&lt;span class=&quot;hljs-built_in&quot;&gt;Init&lt;/span&gt;(&lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;win32u.dll&amp;quot;&lt;/span&gt;);
+  sCreateStub.&lt;span class=&quot;hljs-built_in&quot;&gt;Set&lt;/span&gt;(sWin32uIntercept, &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;NtGdiDdDDICreateDCFromMemory&amp;quot;&lt;/span&gt;,
+                  &amp;amp;CreateHook);
+  sDestroyStub.&lt;span class=&quot;hljs-built_in&quot;&gt;Set&lt;/span&gt;(sWin32uIntercept, &lt;span class=&quot;hljs-string&quot;&gt;&amp;quot;NtGdiDdDDIDestroyDCFromMemory&amp;quot;&lt;/span&gt;,
+                   &amp;amp;DestroyHook);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The mochitest harness profiles every test, but to keep the overhead low it doesn't walk native stacks, so marker stacks only contain JS frames. Pushing to try with &lt;code&gt;--profiler&lt;/code&gt; gives a normally configured profiler, with native stacks. The harness only uploads profiles of failing tests, so the test ends with an assertion that always fails.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://share.firefox.dev/4zWP4b7&quot;&gt;Here is the resulting profile&lt;/a&gt;, filtered to show only the new markers. There are 428 &lt;code&gt;GDI CreateDCFromMemory&lt;/code&gt; markers and 127 &lt;code&gt;GDI DestroyDCFromMemory&lt;/code&gt; markers. Pairing them by handle leaves 301 DCs that are never destroyed: 177 with a 64×32 bitmap, 91 with a 64×64 one and 33 with a 32×32 one, exactly the bitmaps found in the handle table at the end of the test.&lt;/p&gt;
+&lt;p&gt;Here is the stack of &lt;a href=&quot;https://share.firefox.dev/4A1uV3X&quot;&gt;one of the leaked DCs&lt;/a&gt;, innermost frame first:&lt;/p&gt;
+&lt;pre class=&quot;code&quot;&gt;&lt;code class=&quot;hljs language-plaintext&quot;&gt;D3D10Warp.dll!UMDevice::InternalGetDC
+d3d11.dll!NDXGI::CResource::CGdiInterop::GetDC
+d3d11.dll!NDXGI::CResource::GetDCCore
+Microsoft.UI.Windowing.Core.dll!CTitleBar::PaintButton
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateButtonState
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateAllButtonStates
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateColors
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateExtendsContentIntoTitleBar
+Microsoft.UI.Windowing.Core.dll!...::put_ExtendsContentIntoTitleBar
+xul.dll!WindowsUIUtils::SetIsTitlebarCollapsed
+xul.dll!nsWindow::SetCustomTitlebar
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The leaked objects are the images of the title bar buttons and icon. To draw its tabs in the title bar, Firefox asks the Windows App SDK (&lt;code&gt;Microsoft.UI.Windowing.Core.dll&lt;/code&gt;) to let the window content extend into the title bar, and the SDK then paints these buttons itself.&lt;/p&gt;
+&lt;p&gt;The destroy markers explain why some are freed and others aren't. Each window creates 14 DCs while setting up its title bar. When the window is closed, &lt;a href=&quot;https://share.firefox.dev/4eS7XDT&quot;&gt;4 of them are destroyed&lt;/a&gt;, all at once, when their surface is destroyed while DirectComposition commits (&lt;code&gt;CTitleBar::CommitDCompDevice&lt;/code&gt;, called from &lt;code&gt;nsWindow::Show(false)&lt;/code&gt; in &lt;code&gt;AppWindow::Destroy&lt;/code&gt;). The 10 others are never destroyed. My understanding is that they live as long as the title bar object, which nothing destroys when the window is closed. This looks like a bug in the Windows App SDK.&lt;/p&gt;
+&lt;h2&gt;The fix&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://phabricator.services.mozilla.com/D344974&quot;&gt;The fix&lt;/a&gt; is to undo the extension of the window content into the title bar, resetting it to its default state, before destroying the window:&lt;/p&gt;
+&lt;pre class=&quot;code&quot;&gt;&lt;code class=&quot;hljs language-cpp&quot;&gt;  &lt;span class=&quot;hljs-comment&quot;&gt;// Destroying the window doesn&amp;#x27;t release the GDI objects the Windows App SDK&lt;/span&gt;
+  &lt;span class=&quot;hljs-comment&quot;&gt;// allocates for a title bar extended into the client area, so undo that&lt;/span&gt;
+  &lt;span class=&quot;hljs-comment&quot;&gt;// first.&lt;/span&gt;
+  &lt;span class=&quot;hljs-keyword&quot;&gt;if&lt;/span&gt; (mCustomNonClient) {
+    WindowsUIUtils::&lt;span class=&quot;hljs-built_in&quot;&gt;SetIsTitlebarCollapsed&lt;/span&gt;(mWnd, &lt;span class=&quot;hljs-literal&quot;&gt;false&lt;/span&gt;);
+  }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Each window leaked 20 of the 10,000 GDI objects a process can own, hence the crash around the 500th window. With the fix, closing a window leaks 0 GDI objects, and Firefox can now open more than 500 windows on Windows without crashing. This landed in &lt;a href=&quot;https://bugzilla.mozilla.org/show_bug.cgi?id=2096020&quot;&gt;bug 2096020&lt;/a&gt;.&lt;/p&gt;
+&lt;h2&gt;How it really happened&lt;/h2&gt;
+&lt;p&gt;The story above is the method I would follow next time, but a few things happened slightly differently. Claude found the fix before having the stacks. Once it was clear that each window leaked 20 objects, Claude proposed variants to test on try: popups, a chrome window without a title bar, &lt;code&gt;browser.tabs.inTitlebar=0&lt;/code&gt;, disabling Mica. Only browser windows drawing tabs in the title bar leaked. Claude then read the code of that path, found the &lt;code&gt;SetIsTitlebarCollapsed&lt;/code&gt; call, and tested resetting it behind a pref: that removed the leak. The clean profile shared above came last, when preparing this blog post. The profiles produced during the actual investigation were a bit messier, as they hooked several other GDI functions (creating DIB sections, compatible DCs and bitmaps), and at first not the one Direct3D uses to create the leaked DCs.&lt;/p&gt;
+&lt;h2&gt;Things to take away&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;To investigate a resource leak, start by measuring resources after each test. ctypes in the test harness gives answers on try without compiling anything.&lt;/li&gt;
+&lt;li&gt;Walking the tables the OS keeps for the process shows what the leaked objects look like, which gives a hint about which functions to watch.&lt;/li&gt;
+&lt;li&gt;Profiler markers with native stacks show what happens inside the OS: a nice way to pinpoint the code responsible for a leak without guessing.&lt;/li&gt;
+&lt;li&gt;All of this works in try pushes, without a machine reproducing locally, and mostly with artifact builds: only the native hooks and the patch itself needed full builds.&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+
+</feed>

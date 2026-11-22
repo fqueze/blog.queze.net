@@ -15,6 +15,7 @@
   <link rel="stylesheet" type="text/css" href="/themes/default/style.css" media="screen" />
   <link rel="stylesheet" type="text/css" href="/themes/default/print.css" media="print" />
   <link rel="stylesheet" href="/public/blowup-css/default.css" type="text/css" />
+  <link rel="stylesheet" href="/public/code.css" type="text/css" />
 </head>
 
 <body class="dc-category">
@@ -42,7 +43,208 @@
   </div>
   
 
-    <div id="p140" class="post odd first" lang="en" xml:lang="en">
+    <div id="pDebugging-a-Windows-crash-that-left-no-crash-report" class="post odd first" lang="en" xml:lang="en">
+    <p class="day-date">Monday, November 23 2026</p>
+
+    <h2 class="post-title"><a
+    href="/post/2026/11/23/Debugging-a-Windows-crash-that-left-no-crash-report">Debugging a Windows crash that left no crash report</a></h2>
+
+    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
+    on Monday, November 23 2026, 00:03
+    
+    </p>
+
+    <ul class="post-tags">
+    <li><a href="/tag/debugging">debugging</a></li>
+    </ul>
+
+    <div class="post-content"><p>How, without ever starting my Windows laptop, I understood why Firefox crashes on Windows when opening its 500th window. From a crash that left nothing but an exit code to a fix that landed only a few hours later!</p>
+<h2>The symptom</h2>
+<p>Two changes landed on the same day: the mochitest harness started to <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2090907">fail the running test when the browser exits abnormally without a minidump</a>, and <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2092566"><code>mochitest-browser-chrome-repeat</code> jobs started running on autoland and mozilla-central</a>. Together, they made the aiwindow manifest perma-fail on Windows 11 with &quot;application terminated with exit code 3762701893&quot;.</p>
+<p>No minidump, no stack, nothing else to look at. The only useful observation was that the failure was deterministic: the browser always died at about the same point of the run, after roughly 14 minutes. Something was accumulating.</p>
+<p>A quick online search gave only one result about this exit code (0xE0464645 in hexadecimal): a <a href="https://github.com/hajisensai/Fushi/blob/main/docs/bugs/BUG-289-dcomp-compositor-atexit-failfast.md">bug write-up in Chinese</a> for another project, analyzing crash dumps with the same exception code. Their stacks show it's raised by <code>CoreMessaging!CFlat::Abandonment::Fail</code> calling <a href="https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-raisefailfastexception"><code>RaiseFailFastException</code></a>, which &quot;bypasses all exception handlers&quot;: this is why our crash reporter never saw anything. A Windows UI component giving up after 14 minutes of tests suggested it was running out of something.</p>
+<h2>Measuring resources after each test</h2>
+<p>Finding out what only required adding a few lines to the browser-chrome harness (<code>browser-test.js</code>) to log, after each test, the parent process's GDI and USER object counts, handle count, and private and committed memory:</p>
+<pre class="code"><code class="hljs language-js"><span class="hljs-keyword">let</span> <span class="hljs-title class_">GetGuiResources</span> = user32.<span class="hljs-title function_">declare</span>(
+  <span class="hljs-string">&quot;GetGuiResources&quot;</span>,
+  ctypes.<span class="hljs-property">winapi_abi</span>,
+  ctypes.<span class="hljs-property">uint32_t</span>,
+  ctypes.<span class="hljs-property">voidptr_t</span>,
+  ctypes.<span class="hljs-property">uint32_t</span>
+);
+<span class="hljs-keyword">let</span> proc = <span class="hljs-title class_">GetCurrentProcess</span>();
+parts.<span class="hljs-title function_">push</span>(<span class="hljs-string">`gdi <span class="hljs-subst">${GetGuiResources(proc, <span class="hljs-number">0</span>)}</span>`</span>);
+parts.<span class="hljs-title function_">push</span>(<span class="hljs-string">`gdiPeak <span class="hljs-subst">${GetGuiResources(proc, <span class="hljs-number">2</span>)}</span>`</span>);
+parts.<span class="hljs-title function_">push</span>(<span class="hljs-string">`user <span class="hljs-subst">${GetGuiResources(proc, <span class="hljs-number">1</span>)}</span>`</span>);
+parts.<span class="hljs-title function_">push</span>(<span class="hljs-string">`userPeak <span class="hljs-subst">${GetGuiResources(proc, <span class="hljs-number">4</span>)}</span>`</span>);
+<span class="hljs-comment">// ... handle count, private bytes, system commit, kernel pools ...</span>
+<span class="hljs-title function_">dump</span>(<span class="hljs-string">`DEBUG-RESOURCES | <span class="hljs-subst">${parts.join(<span class="hljs-string">&quot; | &quot;</span>)}</span>\n`</span>);
+</code></pre>
+<p>Using ctypes means no compilation is needed, so the try pushes could use artifact builds to iterate quickly.</p>
+<p>The answer was clear: the number of GDI objects climbed steadily from 45 to 9,950–9,999 after the last test that completed, and the peak value reported by Windows was exactly 10,000. 10,000 is the maximum number of GDI objects a Windows process can own. Nothing else was anywhere near a limit.</p>
+<h2>A smaller test case</h2>
+<p>The Smart Window tests open and close a lot of windows, about 500 in a single browser session, so opening windows was the obvious suspect. A new test opening and closing 30 browser windows, in its own folder so it can run alone on try and give fast results, confirmed it, and showed the problem had nothing to do with Smart Window: each window leaked about 20 GDI objects, never released, even after memory minimization.</p>
+<h2>Which objects? Walking the GDI handle table</h2>
+<p>Again, some help was found on GitHub: a <a href="https://github.com/Softanics/gdi-leaks">gdi-leaks</a> project has code reading the GDI handle table that Windows maps into every process. Still from ctypes, this table can be accessed from an undocumented field (<code>GdiSharedHandleTable</code>) of a per-process Windows structure, keeping the entries owned by our process, and asking GDI for the type and size of each object:</p>
+<pre class="code"><code class="hljs language-js"><span class="hljs-comment">// GdiSharedHandleTable, undocumented, at 0xF8 on x64.</span>
+<span class="hljs-keyword">let</span> table = ctypes.<span class="hljs-title function_">cast</span>(
+  ctypes
+    .<span class="hljs-title function_">cast</span>(peb, ctypes.<span class="hljs-property">uint8_t</span>.<span class="hljs-title function_">array</span>(<span class="hljs-number">0x100</span>).<span class="hljs-property">ptr</span>)
+    .<span class="hljs-property">contents</span>.<span class="hljs-title function_">addressOfElement</span>(<span class="hljs-number">0xf8</span>),
+  ctypes.<span class="hljs-property">voidptr_t</span>.<span class="hljs-property">ptr</span>
+).<span class="hljs-property">contents</span>;
+<span class="hljs-comment">// 65536 cells of 24 bytes: kernel pointer, pid, count, upper, type, user</span>
+<span class="hljs-comment">// pointer.</span>
+<span class="hljs-keyword">let</span> cells = ctypes.<span class="hljs-title function_">cast</span>(
+  table,
+  ctypes.<span class="hljs-property">uint16_t</span>.<span class="hljs-title function_">array</span>(<span class="hljs-number">65536</span> * <span class="hljs-number">12</span>).<span class="hljs-property">ptr</span>
+).<span class="hljs-property">contents</span>;
+<span class="hljs-keyword">let</span> pid = <span class="hljs-title class_">GetCurrentProcessId</span>() &amp; <span class="hljs-number">0xffff</span>;
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">65536</span>; i++) {
+  <span class="hljs-keyword">if</span> (cells[i * <span class="hljs-number">12</span> + <span class="hljs-number">4</span>] != pid) {
+    <span class="hljs-keyword">continue</span>;
+  }
+  <span class="hljs-keyword">let</span> handle = ctypes.<span class="hljs-title function_">cast</span>(
+    ctypes.<span class="hljs-title function_">uintptr_t</span>(cells[i * <span class="hljs-number">12</span> + <span class="hljs-number">6</span>] * <span class="hljs-number">65536</span> + i),
+    ctypes.<span class="hljs-property">voidptr_t</span>
+  );
+  <span class="hljs-keyword">let</span> type = <span class="hljs-variable constant_">TYPES</span>[<span class="hljs-title class_">GetObjectType</span>(handle) - <span class="hljs-number">1</span>];
+  <span class="hljs-keyword">if</span> (type == <span class="hljs-string">&quot;BITMAP&quot;</span> &amp;&amp; <span class="hljs-title class_">GetObjectW</span>(handle, <span class="hljs-variable constant_">BITMAP</span>.<span class="hljs-property">size</span>, bitmap.<span class="hljs-title function_">address</span>())) {
+    type += <span class="hljs-string">` <span class="hljs-subst">${bitmap.bmWidth}</span>x<span class="hljs-subst">${bitmap.bmHeight}</span>`</span>;
+  }
+  counts[type] = (counts[type] || <span class="hljs-number">0</span>) + <span class="hljs-number">1</span>;
+}
+</code></pre>
+<p>Before and after opening and closing 30 windows, this gives:</p>
+<table>
+<thead>
+<tr>
+<th>GDI objects</th>
+<th style="text-align:right">Before</th>
+<th style="text-align:right">After 30 windows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Memory device contexts (DCs)</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right"><strong>303</strong></td>
+</tr>
+<tr>
+<td>Bitmaps 64×32</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right"><strong>177</strong></td>
+</tr>
+<tr>
+<td>Bitmaps 64×64</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right"><strong>91</strong></td>
+</tr>
+<tr>
+<td>Bitmaps 32×32</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right"><strong>33</strong></td>
+</tr>
+<tr>
+<td>Regions</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">8</td>
+</tr>
+<tr>
+<td>Brushes</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>Fonts</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>Bitmaps 8×8</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td style="text-align:right">43</td>
+<td style="text-align:right"><strong>635</strong></td>
+</tr>
+</tbody>
+</table>
+<p>So each window leaves behind about 10 memory DCs and 10 small bitmaps of 64×32, 64×64 and 32×32 pixels.</p>
+<h2>Who allocates them?</h2>
+<p>Each leaked bitmap comes with a memory DC: that's the pair Windows creates when graphics code asks for a DC to draw with GDI into a GPU surface. With hooks on the native functions that create this pair (<code>NtGdiDdDDICreateDCFromMemory</code>) and destroy it (<code>NtGdiDdDDIDestroyDCFromMemory</code>), the Firefox Profiler can record markers with stacks for each call:</p>
+<pre class="code"><code class="hljs language-cpp"><span class="hljs-function"><span class="hljs-type">static</span> LONG NTAPI <span class="hljs-title">CreateHook</span><span class="hljs-params">(CreateArgs* aArgs)</span> </span>{
+  LONG status = <span class="hljs-built_in">sCreateStub</span>(aArgs);
+  <span class="hljs-keyword">if</span> (status &gt;= <span class="hljs-number">0</span>) {
+    <span class="hljs-built_in">PROFILER_MARKER_TEXT</span>(
+        <span class="hljs-string">&quot;GDI CreateDCFromMemory&quot;</span>, GRAPHICS, MarkerStack::<span class="hljs-built_in">Capture</span>(),
+        <span class="hljs-built_in">nsPrintfCString</span>(<span class="hljs-string">&quot;DC %08x bitmap %08x %ux%u&quot;</span>, <span class="hljs-built_in">Handle</span>(aArgs-&gt;mDc),
+                        <span class="hljs-built_in">Handle</span>(aArgs-&gt;mBitmap), aArgs-&gt;mWidth,
+                        aArgs-&gt;mHeight));
+  }
+  <span class="hljs-keyword">return</span> status;
+}
+
+<span class="hljs-function"><span class="hljs-type">static</span> LONG NTAPI <span class="hljs-title">DestroyHook</span><span class="hljs-params">(<span class="hljs-type">const</span> DestroyArgs* aArgs)</span> </span>{
+  <span class="hljs-built_in">PROFILER_MARKER_TEXT</span>(
+      <span class="hljs-string">&quot;GDI DestroyDCFromMemory&quot;</span>, GRAPHICS, MarkerStack::<span class="hljs-built_in">Capture</span>(),
+      <span class="hljs-built_in">nsPrintfCString</span>(<span class="hljs-string">&quot;DC %08x bitmap %08x&quot;</span>, <span class="hljs-built_in">Handle</span>(aArgs-&gt;mDc),
+                      <span class="hljs-built_in">Handle</span>(aArgs-&gt;mBitmap)));
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">sDestroyStub</span>(aArgs);
+}
+
+<span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title">Install</span><span class="hljs-params">()</span> </span>{
+  sWin32uIntercept.<span class="hljs-built_in">Init</span>(<span class="hljs-string">&quot;win32u.dll&quot;</span>);
+  sCreateStub.<span class="hljs-built_in">Set</span>(sWin32uIntercept, <span class="hljs-string">&quot;NtGdiDdDDICreateDCFromMemory&quot;</span>,
+                  &amp;CreateHook);
+  sDestroyStub.<span class="hljs-built_in">Set</span>(sWin32uIntercept, <span class="hljs-string">&quot;NtGdiDdDDIDestroyDCFromMemory&quot;</span>,
+                   &amp;DestroyHook);
+}
+</code></pre>
+<p>The mochitest harness profiles every test, but to keep the overhead low it doesn't walk native stacks, so marker stacks only contain JS frames. Pushing to try with <code>--profiler</code> gives a normally configured profiler, with native stacks. The harness only uploads profiles of failing tests, so the test ends with an assertion that always fails.</p>
+<p><a href="https://share.firefox.dev/4zWP4b7">Here is the resulting profile</a>, filtered to show only the new markers. There are 428 <code>GDI CreateDCFromMemory</code> markers and 127 <code>GDI DestroyDCFromMemory</code> markers. Pairing them by handle leaves 301 DCs that are never destroyed: 177 with a 64×32 bitmap, 91 with a 64×64 one and 33 with a 32×32 one, exactly the bitmaps found in the handle table at the end of the test.</p>
+<p>Here is the stack of <a href="https://share.firefox.dev/4A1uV3X">one of the leaked DCs</a>, innermost frame first:</p>
+<pre class="code"><code class="hljs language-plaintext">D3D10Warp.dll!UMDevice::InternalGetDC
+d3d11.dll!NDXGI::CResource::CGdiInterop::GetDC
+d3d11.dll!NDXGI::CResource::GetDCCore
+Microsoft.UI.Windowing.Core.dll!CTitleBar::PaintButton
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateButtonState
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateAllButtonStates
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateColors
+Microsoft.UI.Windowing.Core.dll!CTitleBar::UpdateExtendsContentIntoTitleBar
+Microsoft.UI.Windowing.Core.dll!...::put_ExtendsContentIntoTitleBar
+xul.dll!WindowsUIUtils::SetIsTitlebarCollapsed
+xul.dll!nsWindow::SetCustomTitlebar
+</code></pre>
+<p>The leaked objects are the images of the title bar buttons and icon. To draw its tabs in the title bar, Firefox asks the Windows App SDK (<code>Microsoft.UI.Windowing.Core.dll</code>) to let the window content extend into the title bar, and the SDK then paints these buttons itself.</p>
+<p>The destroy markers explain why some are freed and others aren't. Each window creates 14 DCs while setting up its title bar. When the window is closed, <a href="https://share.firefox.dev/4eS7XDT">4 of them are destroyed</a>, all at once, when their surface is destroyed while DirectComposition commits (<code>CTitleBar::CommitDCompDevice</code>, called from <code>nsWindow::Show(false)</code> in <code>AppWindow::Destroy</code>). The 10 others are never destroyed. My understanding is that they live as long as the title bar object, which nothing destroys when the window is closed. This looks like a bug in the Windows App SDK.</p>
+<h2>The fix</h2>
+<p><a href="https://phabricator.services.mozilla.com/D344974">The fix</a> is to undo the extension of the window content into the title bar, resetting it to its default state, before destroying the window:</p>
+<pre class="code"><code class="hljs language-cpp">  <span class="hljs-comment">// Destroying the window doesn&#x27;t release the GDI objects the Windows App SDK</span>
+  <span class="hljs-comment">// allocates for a title bar extended into the client area, so undo that</span>
+  <span class="hljs-comment">// first.</span>
+  <span class="hljs-keyword">if</span> (mCustomNonClient) {
+    WindowsUIUtils::<span class="hljs-built_in">SetIsTitlebarCollapsed</span>(mWnd, <span class="hljs-literal">false</span>);
+  }
+</code></pre>
+<p>Each window leaked 20 of the 10,000 GDI objects a process can own, hence the crash around the 500th window. With the fix, closing a window leaks 0 GDI objects, and Firefox can now open more than 500 windows on Windows without crashing. This landed in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=2096020">bug 2096020</a>.</p>
+<h2>How it really happened</h2>
+<p>The story above is the method I would follow next time, but a few things happened slightly differently. Claude found the fix before having the stacks. Once it was clear that each window leaked 20 objects, Claude proposed variants to test on try: popups, a chrome window without a title bar, <code>browser.tabs.inTitlebar=0</code>, disabling Mica. Only browser windows drawing tabs in the title bar leaked. Claude then read the code of that path, found the <code>SetIsTitlebarCollapsed</code> call, and tested resetting it behind a pref: that removed the leak. The clean profile shared above came last, when preparing this blog post. The profiles produced during the actual investigation were a bit messier, as they hooked several other GDI functions (creating DIB sections, compatible DCs and bitmaps), and at first not the one Direct3D uses to create the leaked DCs.</p>
+<h2>Things to take away</h2>
+<ul>
+<li>To investigate a resource leak, start by measuring resources after each test. ctypes in the test harness gives answers on try without compiling anything.</li>
+<li>Walking the tables the OS keeps for the process shows what the leaked objects look like, which gives a hint about which functions to watch.</li>
+<li>Profiler markers with native stacks show what happens inside the OS: a nice way to pinpoint the code responsible for a leak without guessing.</li>
+<li>All of this works in try pushes, without a machine reproducing locally, and mostly with artifact builds: only the native hooks and the patch itself needed full builds.</li>
+</ul>
+</div>
+
+    
+    </div>
+
+    <div id="p140" class="post  " lang="en" xml:lang="en">
     <p class="day-date">Tuesday, December  5 2017</p>
 
     <h2 class="post-title"><a
@@ -87,7 +289,7 @@ for it to prevent regression.</div></div>
     
     </div>
 
-    <div id="p139" class="post  " lang="en" xml:lang="en">
+    <div id="p139" class="post odd " lang="en" xml:lang="en">
     <p class="day-date">Wednesday, October 18 2017</p>
 
     <h2 class="post-title"><a
@@ -109,7 +311,7 @@ for it to prevent regression.</div></div>
     
     </div>
 
-    <div id="p138" class="post odd " lang="en" xml:lang="en">
+    <div id="p138" class="post  " lang="en" xml:lang="en">
     <p class="day-date">Monday, February  8 2016</p>
 
     <h2 class="post-title"><a
@@ -146,7 +348,7 @@ Note for students: the student application period starts on March 14th, but the 
     
     </div>
 
-    <div id="p137" class="post  " lang="en" xml:lang="en">
+    <div id="p137" class="post odd " lang="en" xml:lang="en">
     <p class="day-date">Tuesday, November  3 2015</p>
 
     <h2 class="post-title"><a
@@ -179,7 +381,7 @@ Note for students: the student application period starts on March 14th, but the 
     
     </div>
 
-    <div id="p135" class="post odd " lang="en" xml:lang="en">
+    <div id="p135" class="post  " lang="en" xml:lang="en">
     <p class="day-date">Tuesday, March  3 2015</p>
 
     <h2 class="post-title"><a
@@ -205,7 +407,7 @@ Note for students: the student application period starts on March 14th, but the 
     
     </div>
 
-    <div id="p134" class="post  " lang="en" xml:lang="en">
+    <div id="p134" class="post odd " lang="en" xml:lang="en">
     <p class="day-date">Wednesday, February 11 2015</p>
 
     <h2 class="post-title"><a
@@ -229,7 +431,7 @@ Note for students: the student application period starts on March 14th, but the 
     
     </div>
 
-    <div id="p133" class="post odd " lang="en" xml:lang="en">
+    <div id="p133" class="post  " lang="en" xml:lang="en">
     <p class="day-date">Thursday, January 22 2015</p>
 
     <h2 class="post-title"><a
@@ -273,7 +475,7 @@ to the <a href="https://wiki.mozilla.org/Community:SummerOfCode15">formal Ideas 
     
     </div>
 
-    <div id="p132" class="post  " lang="en" xml:lang="en">
+    <div id="p132" class="post odd " lang="en" xml:lang="en">
     <p class="day-date">Sunday, July 27 2014</p>
 
     <h2 class="post-title"><a
@@ -350,7 +552,7 @@ I did, ten years ago.</p></div>
     
     </div>
 
-    <div id="p131" class="post odd " lang="en" xml:lang="en">
+    <div id="p131" class="post  " lang="en" xml:lang="en">
     <p class="day-date">Friday, July 25 2014</p>
 
     <h2 class="post-title"><a
@@ -417,118 +619,6 @@ Unfortunately, two dependencies were missing on that list (I've now fixed the pa
     
     </div>
 
-    <div id="p130" class="post  " lang="en" xml:lang="en">
-    <p class="day-date">Tuesday, May 20 2014</p>
-
-    <h2 class="post-title"><a
-    href="/post/2014/05/20/Summer-of-Code-2014-projects">Summer of Code 2014 projects</a></h2>
-
-    <p class="post-info">By <a href="http://blog.queze.net">Florian Quèze</a>
-    on Tuesday, May 20 2014, 16:50
-    
-    </p>
-
-    
-
-    <div class="post-content"><p>The coding period is starting for Google Summer of Code 2014. I am pleased to list the 28 projects (7 more than last year!) that are mentored this year under the Mozilla banner.</p>
-<p>The title of each project is linked to the location where the student will be posting weekly updates on their progress, if you want to follow along with a project you are interested in. I’m sure they would appreciate any help or advice you have :-) Please help them write useful code during the summer!</p>
-<table>
-<tbody><tr><th>Project Title
-</th><th>Student
-</th><th>Mentor
-</th></tr><tr><td><a href="http://www.iakshay.net/google-summer-of-code/">MDN – Bug Fixing and Polishing</a>
-</td><td>Akshay Aurora
-</td><td>David Walsh
-</td></tr><tr><td><a href="http://andregarzia.com/pages/en/blog/">Firefox OS Games Resources</a>
-</td><td>Andre Alves Garzia
-</td><td>Soledad Penades
-</td></tr><tr><td><a href="https://wiki.mozilla.org/SpeechRTC_-_Speech_enabling_the_open_web">Development of both online as offline speech recognition to B2G and Firefox</a>
-</td><td>Andre Natal
-</td><td>Guilherme Gonçalves
-</td></tr><tr><td><a href="http://meemoo.org/blog">Porting key Meemoo modules to NoFlo</a>
-</td><td>Vilson Vieira
-</td><td>Forrest Oliphant
-</td></tr><tr><td><a href="http://pankajmalhotra.com/">Functional Test Suite and Features for QA Taskboard - One and Done</a>
-</td><td>Pankaj Malhotra
-</td><td>Bob Silverberg
-</td></tr><tr><td><a href="http://codingowl.tumblr.com/gsoc2014">Implement Zest recorder and runner </a>
-</td><td>Sunny Gogoi
-</td><td>Simon Bennetts
-</td></tr><tr><td>Improve font handling and text shaping in Servo
-</td><td>Patryk Obara
-</td><td>Patrick Walton
-</td></tr><tr><td><a href="http://nitsurat.acm.org/gargsms/">Add learning capability in the Gaia Keyboard prediction</a>
-</td><td>Sukant Garg
-</td><td>Jan Jongboom
-</td></tr><tr><td><a href="http://blog.gabrielivanica.com/">Browsercast</a>
-</td><td>Gabriel Ivanica
-</td><td>Greg Wilson
-</td></tr><tr><td><a href="https://wiki.mozilla.org/User:Ishitva">Migrate from YUI2 to YUI3 . Bug 453268</a>
-</td><td>Ishitva Goel
-</td><td>Byron Jones
-</td></tr><tr><td><a href="http://yesitsyash.blogspot.in/search/label/google%20summer%20of%20code">Implement Speech Synthesis on Desktop Firefox</a>
-</td><td>Yashasvi Girdhar
-</td><td>Eitan
-</td></tr><tr><td><a href="http://sigwinch.wordpress.com/">Add markdown support to Bugzilla</a>
-</td><td>Koosha Khajehmoogahi
-</td><td>David Lawrence
-</td></tr><tr><td><a href="http://rishav006.wordpress.com/">Improved messaging functionality and interaction in the SMS app</a>
-</td><td>Kumar Rishav
-</td><td>Gabriele Svelto
-</td></tr><tr><td><a href="http://me-levens.rhcloud.com/">Update Lightning Invitations to Latest Specification</a>
-</td><td>Malintha Fernando
-</td><td>Mohit Kanwal
-</td></tr><tr><td><a href="http://benjamin.smedbergs.us/weekly-updates.fcgi/user/manishearth%40gmail.com">Implement XMLHttpRequest in Servo</a>
-</td><td>Manish Goregaokar
-</td><td>Josh Matthews
-</td></tr><tr><td><a href="http://mayanktg.github.io">Instantbird: WebRTC Support</a>
-</td><td>Mayank Kumar
-</td><td>BenediktP
-</td></tr><tr><td><a href="http://blog.nhnt11.com/">Instantbird: Indexed Chat History and Infinite Conversation Scrollback</a>
-</td><td>Nihanth Subramanya
-</td><td>aleth
-</td></tr><tr><td><a href="http://piotr.banaszkiewicz.org/tags/gsoc/">Peer instruction on the Web</a>
-</td><td>Piotr Banaszkiewicz
-</td><td>mhoye
-</td></tr><tr><td><a href="http://abyteaday.quora.com/">Implementation of SVG Backend for PDF.js</a>
-</td><td>Pramodh KP
-</td><td>yury
-</td></tr><tr><td><a href="http://blog.121n3.com/">A Desktop Environment based on B2G</a>
-</td><td>Towfique Anam
-</td><td>Fabrice Desré
-</td></tr><tr><td><a href="http://blog.rgaiacs.com/tags/gsoc2014.html">Math virtual keyboard</a>
-</td><td>Raniere Silva
-</td><td>Salva
-</td></tr><tr><td><a href="http://summeroflightning.wordpress.com/">Improve Calendar Backends</a>
-</td><td>Reid Anderson
-</td><td>Philipp Kewisch
-</td></tr><tr><td><a href="http://www.wiredcrow.com/?page_id=104">Kitherder, web application for the Security Mentorships program</a>
-</td><td>Renee Cheung
-</td><td>Yvan Boily
-</td></tr><tr><td><a href="http://sawrubh.tumblr.com/">FileLinks in IMs / File transfer</a>
-</td><td>Saurabh Anand
-</td><td>clokep
-</td></tr><tr><td><a href="http://sshagarwal.blogspot.fr/">Thunderbird - Make the unit test framework work with maildir mailbox format</a>
-</td><td>Suyash Agarwal
-</td><td>R Kent James
-</td></tr><tr><td><a href="http://tharshan-gsoc.logdown.com/">Mozilla Intellego -- Terminology-driven automatic translation of web sites.</a>
-</td><td>Tharshan Muthulingam
-</td><td>Jeff
-</td></tr><tr><td><a href="https://wiki.mozilla.org/Jetpack/e10s">Implement Electrolysis Support for Addon SDK</a>
-</td><td>Tomislav Jovanovic
-</td><td>gozala
-</td></tr><tr><td><a href="https://vaibhavag.wordpress.com/">Mochitest Failure Investigator</a>
-</td><td>Vaibhav Agrawal
-</td><td>joelmaher
-</td></tr></tbody></table></div>
-
-    
-      <p class="post-info-co">
-      <a href="/post/2014/05/20/Summer-of-Code-2014-projects#comments" class="comment_count">no comment</a>
-      </p>
-    
-    </div>
-
 
     <p class="pagination"><a href="/category/Mozilla/page/2" class="prev">&#171;
     previous entries</a> - 
@@ -553,7 +643,7 @@ Unfortunately, two dependencies were missing on that list (I've now fixed the pa
 </div> <!-- End #wrapper -->
 
 <div id="footer">
-  <p>© 2005-2017 Florian Quèze</p>
+  <p>© 2005-2026 Florian Quèze</p>
 </div>
 </div> <!-- End #page -->
 </body>
