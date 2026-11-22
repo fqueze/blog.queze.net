@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import site from './_data/site.js';
 import { buildBlog } from './lib/blog.js';
+import { draftMiddleware } from './lib/drafts.js';
 import { cutString, escapeHTML } from './lib/dotclear.js';
 
 export default function (eleventyConfig) {
@@ -12,6 +13,18 @@ export default function (eleventyConfig) {
 
   // Everything the listings, archives and feeds need, computed from the posts.
   eleventyConfig.addCollection('blog', api => buildBlog(api.getFilteredByGlob('posts/*.md'), site));
+
+  // Drafts and their review mode, only with `npm run serve` (see lib/drafts.js).
+  if (process.env.ELEVENTY_ENV == 'dev') {
+    eleventyConfig.addCollection('drafts', api => api.getFilteredByGlob('draft/*/index.md'));
+    eleventyConfig.addPassthroughCopy('draft/review-mode.*');
+    eleventyConfig.addPassthroughCopy('draft/*/*.{jpg,jpeg,png,gif,webp,svg}');
+    // Comments are saved without reloading the page being reviewed.
+    eleventyConfig.watchIgnores.add('draft/*/data.json');
+    eleventyConfig.setServerOptions({ middleware: [draftMiddleware] });
+  } else {
+    eleventyConfig.ignores.add('draft/**');
+  }
 
   // Old URLs have no extension: /post/2017/12/05/foo is served by GitHub
   // Pages from post/2017/12/05/foo.html.

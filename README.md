@@ -43,6 +43,17 @@ The post, in Markdown.
   and without feed). Used by the posts imported from www.queze.net.
 - `author:` replaces the default author (Florian Quèze) on the post.
 
+## Drafts and review
+
+Write a draft as `draft/<slug>/index.md` (front matter like a post, without
+`date`), with its images next to it. `npm run serve` shows the drafts at
+http://localhost:8080/draft/ (they aren't in `npm run build`).
+
+On a draft page, select text to comment on it; comments are saved in
+`draft/<slug>/data.json`. The banner buttons copy them as a prompt for Claude.
+"Publish" writes `posts/<today>-<slug>.md` dated now, copies the images to
+`pict/`, and shows the git commands to push it. Adapted from combien-consomme.fr.
+
 ## Layout
 
 - `posts/`: one Markdown file per post, with comments in the front matter.

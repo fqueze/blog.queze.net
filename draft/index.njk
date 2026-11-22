@@ -1,0 +1,38 @@
+---
+layout: false
+permalink: /draft/index.html
+---
+{% extends "base.njk" %}
+{% block robots %}NOINDEX, NOFOLLOW, NOARCHIVE{% endblock %}
+{% block title %}Drafts - {{ site.name }}{% endblock %}
+{% block content %}
+  <h2>Drafts</h2>
+  <p>Only built by <code>npm run serve</code>. Add a draft as
+  <code>draft/&lt;slug&gt;/index.md</code>, with its images next to it.</p>
+
+  {% set unpublished = [] %}{% set published = [] %}
+  {% for d in collections.drafts %}
+    {% if d.data.draftInfo.published %}{% set published = (published.push(d), published) %}
+    {% else %}{% set unpublished = (unpublished.push(d), unpublished) %}{% endif %}
+  {% endfor %}
+
+  {% if unpublished.length %}<ul>{% for d in unpublished %}
+    <li>🚧 <a href="{{ d.url }}">{{ d.data.title }}</a>
+    <span class="draft-comments" data-slug="{{ d.data.slug }}"></span></li>
+  {% endfor %}</ul>{% else %}<p>No draft.</p>{% endif %}
+
+  {% if published.length %}<h3>Already published</h3><ul>{% for d in published %}
+    <li>✅ <a href="{{ d.url }}">{{ d.data.title }}</a>
+    (<a href="{{ d.data.draftInfo.url }}">post</a>)</li>
+  {% endfor %}</ul>{% endif %}
+
+  <script>
+  // Comment counts change without a rebuild, as data.json isn't watched.
+  for (const span of document.querySelectorAll('.draft-comments')) {
+    fetch(`/api/draft/${span.dataset.slug}/data`).then(r => r.json()).then(data => {
+      const n = (data.comments || []).length;
+      if (n) span.textContent = `— ${n} comment${n > 1 ? 's' : ''}`;
+    });
+  }
+  </script>
+{% endblock %}

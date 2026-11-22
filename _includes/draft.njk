@@ -1,0 +1,38 @@
+{#- Layout of draft/<slug>/index.md, with the review mode -#}
+{% extends "base.njk" %}
+{% block robots %}NOINDEX, NOFOLLOW, NOARCHIVE{% endblock %}
+{% block title %}[Draft] {{ title }} - {{ site.name }}{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="/draft/review-mode.css" />
+{% endblock %}
+{% block bodyClass %}dc-post{% endblock %}
+{% block content %}
+  <p id="navlinks"><a href="/draft/">&#171; Drafts</a></p>
+
+  <div class="review-export-banner">
+    <div class="review-export-info">
+      <span>Review mode</span>
+      <button class="review-comment-count" title="Copy all the comments">0 comments</button>
+    </div>
+    <div class="review-export-info">
+      <button class="review-export-new-btn" hidden></button>
+      <button class="review-publish-btn" data-slug="{{ slug }}">Publish</button>
+    </div>
+  </div>
+  <div class="review-publish-results" hidden></div>
+
+  <div class="post">
+    <h2 class="post-title">{{ title }}</h2>
+
+    <p class="post-info">By {{ author or site.author.name }}, draft
+    {%- for c in site.categories %}{% if c.url == category %} - {{ c.title }}{% endif %}{% endfor %}
+    </p>
+
+    {% if tags.length %}<ul class="post-tags">{% for t in tags %}
+    <li><a>{{ t }}</a></li>{% endfor %}
+    </ul>{% endif %}
+
+    <div class="post-content">{{ content | safe }}</div>
+  </div>
+  <script src="/draft/review-mode.js"></script>
+{% endblock %}
