@@ -8,7 +8,7 @@ permalink: /draft/index.html
 {% block content %}
   <h2>Drafts</h2>
   <p>Only built by <code>npm run serve</code>. Add a draft as
-  <code>draft/&lt;slug&gt;/index.md</code>, with its images next to it.</p>
+  <code>draft/&lt;name&gt;.md</code>, with its images in <code>draft/&lt;name&gt;/</code>.</p>
 
   {% set unpublished = [] %}{% set published = [] %}
   {% for d in collections.drafts %}

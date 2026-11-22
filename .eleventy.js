@@ -16,7 +16,7 @@ export default function (eleventyConfig) {
 
   // Drafts and their review mode, only with `npm run serve` (see lib/drafts.js).
   if (process.env.ELEVENTY_ENV == 'dev') {
-    eleventyConfig.addCollection('drafts', api => api.getFilteredByGlob('draft/*/index.md'));
+    eleventyConfig.addCollection('drafts', api => api.getFilteredByGlob(['draft/*.md', 'draft/*/index.md']));
     eleventyConfig.addPassthroughCopy('draft/review-mode.*');
     eleventyConfig.addPassthroughCopy('draft/*/*.{jpg,jpeg,png,gif,webp,svg}');
     // Comments are saved without reloading the page being reviewed.

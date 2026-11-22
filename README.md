@@ -45,14 +45,16 @@ The post, in Markdown.
 
 ## Drafts and review
 
-Write a draft as `draft/<slug>/index.md` (front matter like a post, without
-`date`), with its images next to it. `npm run serve` shows the drafts at
-http://localhost:8080/draft/ (they aren't in `npm run build`).
+Write a draft as `draft/<name>.md` (like a post; `date` is ignored), with its
+images in `draft/<name>/` (or write it as `draft/<name>/index.md`).
+`npm run serve` shows the drafts at http://localhost:8080/draft/ (they aren't
+in `npm run build`).
 
 On a draft page, select text to comment on it; comments are saved in
-`draft/<slug>/data.json`. The banner buttons copy them as a prompt for Claude.
-"Publish" writes `posts/<today>-<slug>.md` dated now, copies the images to
-`pict/`, and shows the git commands to push it. Adapted from combien-consomme.fr.
+`draft/<name>/data.json`. The banner buttons copy them as a prompt for Claude.
+"Publish" writes `posts/<today>-<slug>.md` dated now (a date prefix of
+`<name>` is dropped), copies the images to `pict/`, and shows the git commands
+to push it. Adapted from combien-consomme.fr.
 
 ## Layout
 
