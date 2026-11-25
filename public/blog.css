@@ -1,3 +1,35 @@
+/* Additions to the Dotclear theme. */
+
+/* Images fit the column; public/lightbox.js shows the ones that are reduced
+   at full size when clicked. */
+.post-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-content img.zoomable {
+  cursor: zoom-in;
+}
+
+dialog.lightbox {
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: visible;
+}
+
+dialog.lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+dialog.lightbox img {
+  display: block;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
 /* Code blocks of Markdown posts, highlighted at build time by highlight.js.
    Taken from md-viewer's assets/style.css (light colors only, like the theme). */
 
