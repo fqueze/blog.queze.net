@@ -22,6 +22,20 @@ export default function (eleventyConfig) {
     },
   }));
 
+  // Links of Markdown posts to other sites open in a new tab.
+  eleventyConfig.amendLibrary('md', md => {
+    const linkOpen = md.renderer.rules.link_open ||
+      ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options));
+    md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+      const href = tokens[idx].attrGet('href') || '';
+      if (/^https?:\/\//.test(href) && new URL(href).host != site.host) {
+        tokens[idx].attrSet('target', '_blank');
+        tokens[idx].attrSet('rel', 'noopener');
+      }
+      return linkOpen(tokens, idx, options, env, self);
+    };
+  });
+
   // Everything the listings, archives and feeds need, computed from the posts.
   eleventyConfig.addCollection('blog', api => buildBlog(api.getFilteredByGlob('posts/*.md'), site));
 
