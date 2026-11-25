@@ -1,10 +1,49 @@
+/* Additions to the Dotclear theme. */
+
+/* Images fit the column; public/lightbox.js shows the ones that are reduced
+   at full size when clicked. */
+.post-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-content img.zoomable {
+  cursor: zoom-in;
+}
+
+dialog.lightbox {
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: visible;
+}
+
+dialog.lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+dialog.lightbox img {
+  display: block;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+/* A font list with just 'monospace' makes browsers use a much smaller size.
+   Monospace fonts look larger than the text at the same size. */
+.post-content code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
 /* Code blocks of Markdown posts, highlighted at build time by highlight.js.
    Taken from md-viewer's assets/style.css (light colors only, like the theme). */
 
 .post-content pre.code {
   padding: 1em;
   overflow: auto;
-  font: 0.87em/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font: 0.9em/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   white-space: pre;
   word-wrap: normal;
   color: #1f2328;
