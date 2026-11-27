@@ -107,7 +107,6 @@ color:#806432;
 #comments dd {
 background-color:#D6DE91;
 color:#826228;
-background-image:url(/public/blowup-images/comment-b.png);
 }
 #prelude, #prelude a {
 color:#484432;
@@ -122,7 +121,4 @@ color:#DBDB9D;
 }
 #footer {
 background-image:url(/public/blowup-images/page-b.png);
-}
-#comments dt {
-background-image:url(/public/blowup-images/comment-t.png);
 }

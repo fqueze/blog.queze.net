@@ -10,6 +10,21 @@
   overflow-wrap: break-word;
 }
 
+#comments dt {
+  padding-bottom: 6px;
+}
+
+#comments a.comment-number {
+  float: none;
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
+
+#comments dd {
+  border-radius: 8px;
+}
+
 /* Images fit the column; public/lightbox.js shows the ones that are reduced
    at full size when clicked. */
 .post-content img {
