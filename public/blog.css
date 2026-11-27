@@ -130,3 +130,56 @@ dialog.lightbox img {
   font-weight: 600;
 }
 
+/* The content uses the whole width, and the sidebar is a "⋯" in the top
+   right corner of the white area, opened on hover or focus (it has a
+   tabindex, for phones). */
+#wrapper {
+  position: relative;
+  overflow: visible;
+  background: #fff;
+}
+
+#main {
+  float: none;
+  width: auto;
+}
+
+#navlinks, #content > div:first-child > :first-child {
+  margin-right: 2em;
+}
+
+/* The white area starts with the last 9px of the header image, rounded. */
+#sidebar {
+  position: absolute;
+  z-index: 1;
+  top: -9px;
+  right: 0;
+  width: auto;
+  border-radius: 0 9px 0 6px;
+}
+
+#sidebar::before {
+  content: "⋯";
+  display: block;
+  padding: 0.3em 0.6em 0;
+  text-align: right;
+  font-size: 2em;
+  line-height: 1.2;
+  color: #625D47;
+  cursor: pointer;
+}
+
+#sidebar:focus:not(:focus-visible) {
+  outline: none;
+}
+
+#sidebar:not(:hover, :focus-within, :has(:target)) > div {
+  display: none;
+}
+
+#sidebar:hover, #sidebar:focus-within, #sidebar:has(:target) {
+  width: 250px;
+  max-width: 100%;
+  background: #fff;
+  box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.2);
+}

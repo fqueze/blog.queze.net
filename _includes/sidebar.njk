@@ -4,7 +4,7 @@
 {%- macro catList(nodes) -%}
 <ul>{% for n in nodes %}<li{% if currentCat and n.cat.url == currentCat %} class="category-current"{% endif %}><a href="{{ n.cat.path }}">{{ n.cat.title }}</a>{% if n.children.length %}{{ catList(n.children) }}{% endif %}</li>{% endfor %}</ul>
 {%- endmacro -%}
-<div id="sidebar">
+<div id="sidebar" tabindex="0" role="navigation" aria-label="Menu">
   <div id="blognav">
     <div id="search"><h2><label for="q">Search</label></h2><form action="https://duckduckgo.com/" method="get"><fieldset><p><input type="hidden" name="sites" value="{{ site.host }}" /><input type="text" size="10" maxlength="255" id="q" name="q" value="" /> <input type="submit" class="submit" value="ok" /></p></fieldset></form></div><div id="topnav"><ul>{% if not isHome %}<li class="topnav-home"><a href="/">Home</a><span> - </span></li>{% endif %}<li class="topnav-arch"><a href="/archive">Archives</a></li></ul></div><div class="categories"><h2>Categories</h2>{{ catList(collections.blog.catTree) }}</div>
   </div> <!-- End #blognav -->
