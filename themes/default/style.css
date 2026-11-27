@@ -13,7 +13,7 @@
 body {
 	margin: 0;
 	padding: 0;
-	background: #e0e0e0 url(img/body-bg.png) repeat-x top;
+	background: #e0e0e0 repeat-x top;
 	color: #6b6b6b;
 	font: 62.5% "Lucida Grande",Arial,sans-serif;
 }
@@ -67,7 +67,7 @@ sup {
 	width: 800px;
 	padding: 0;
 	margin: 50px auto 0 auto;
-	background: transparent url(img/page-t.png) no-repeat bottom left;
+	background: transparent no-repeat bottom left;
 }
 #top h1 {
 	position: absolute;
@@ -104,7 +104,7 @@ sup {
 	overflow: hidden;
 	margin: 0 auto 0 auto;
 	padding: 20px 0;
-	background: #fff url(img/page-bg.png) repeat-y top left;
+	background: #fff;
 }
 
 #main {
@@ -127,7 +127,7 @@ sup {
 #footer {
 	clear: both;
 	padding: 30px 0 0 0;
-	background: transparent url(img/page-b.png) no-repeat top center;
+	background: transparent no-repeat top center;
 }
 #footer p {
 	margin: 0 auto;
@@ -457,7 +457,7 @@ a.feed {
 #comments dt {
 	margin: 1.5em 0 0 0;
 	padding: 5px 0 16px 0;
-	background: transparent url(img/comment-t.png) no-repeat bottom left;
+	background: transparent no-repeat bottom left;
 }
 #comments dt.me {
 	background-image: url(img/commentmy-t.png);
@@ -472,7 +472,7 @@ a.feed {
 #comments dd {
 	margin: 0;
 	padding: 1px 1em 0.5em 1em;
-	background: #fffad1 url(img/comment-b.png) no-repeat bottom left;
+	background: #fffad1 no-repeat bottom left;
 	color:#6b6b6b;
 }
 #comments dd.me {
