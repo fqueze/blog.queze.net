@@ -1,5 +1,10 @@
 /* Additions to the Dotclear theme. */
 
+/* The theme's 12px is small for reading posts. */
+.post-content, .post-excerpt, #comments dd, #content-info {
+  font-size: 1.25em;
+}
+
 /* Long file names and URLs mustn't make the page wider than the screen. */
 #content {
   overflow-wrap: break-word;
@@ -48,7 +53,7 @@ dialog.lightbox img {
 .post-content pre.code {
   padding: 1em;
   overflow: auto;
-  font: 0.9em/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font: 0.8em/1.45 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   white-space: pre;
   word-wrap: normal;
   color: #1f2328;
@@ -252,5 +257,20 @@ dialog.lightbox img {
     padding-right: 16px;
     border-width: 1px 0;
     border-radius: 0;
+  }
+}
+
+@media (width > 820px) {
+  .post-title {
+    font-size: 2.1em;
+  }
+
+  .post-info, .post-tags, .day-date {
+    font-size: 1.15em;
+  }
+
+  /* As big as .post-title: 2.1em / 1.25em. */
+  #content-info h2 {
+    font-size: 1.7em;
   }
 }
